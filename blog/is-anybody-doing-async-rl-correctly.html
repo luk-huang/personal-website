@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A blog post by Luke J. Huang on async RL, policy lag, effective sample size, and variance-controlled policy optimization.">
+    <title>Is Anybody Doing Async RL Correctly? - Luke J. Huang</title>
+    <script src="../theme.js?v=theme-toggle-2"></script>
+    <link rel="stylesheet" href="../styles.css?v=nav-home">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]]
+        },
+        svg: {
+          fontCache: "global"
+        }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body>
+    <header class="site-nav">
+      <a class="site-brand" href="../index.html">Luke J. Huang</a>
+      <a class="site-nav-link" href="../index.html">Home</a>
+      <details class="site-dropdown">
+        <summary>Blog</summary>
+        <div class="dropdown-panel">
+          <a href="../blog.html">All posts</a>
+          <a href="is-anybody-doing-async-rl-correctly.html">Is Anybody Doing Async RL Correctly?</a>
+        </div>
+      </details>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+        <svg class="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+        </svg>
+      </button>
+    </header>
+
+    <main class="page article-page">
+      <header class="article-header">
+        <h1>Is Anybody Doing Async RL Correctly?</h1>
+        <p class="article-meta">Luke J. Huang &middot; May 2026</p>
+        <p class="article-actions">
+          <a href="https://arxiv.org/abs/2602.17616">Paper</a>
+          <span aria-hidden="true">|</span>
+          <a href="https://github.com/mit-han-lab/vcpo/">Code</a>
+        </p>
+      </header>
+
+      <article class="article-content">
+        <p class="lede">
+          Every major open-weights frontier model - GLM 5, Ring 1T, DeepSeek
+          V3.2, Minimax M2.5, Qwen 3.6 - uses async RL. It's up to 2-3x faster
+          than the alternative but it can easily collapse mid-training. Each lab
+          quietly built their own workaround but none of them fully work. This
+          is the story of why.
+        </p>
+
+        <section>
+          <h2>What Is Async RL and Why Does Everyone Want It</h2>
+          <p>
+            A big systems problem in RL is that sampling is expensive. In
+            standard on-policy RL, you first sample prompts, generate responses
+            with the current model, and only then train on those responses. This
+            makes the loop conceptually simple, but even one trajectory that
+            takes much longer than the others can hold up the next update and
+            leave some compute underused.
+          </p>
+          <p>
+            Asynchronous RL removes this bottleneck by separating generation and
+            training into two independent loops. As the diagram below shows,
+            rollout workers keep producing trajectories while the trainer keeps
+            updating the policy, no waiting required.
+          </p>
+
+          <figure class="article-figure wide">
+            <img src="../assets/blog/async-rl/figure-01-p2.png" alt="Synchronous RL compared with decoupled asynchronous RL.">
+            <figcaption>
+              Left: in synchronous RL, trajectory sampling and policy updates
+              are tightly coupled in one loop. Right: in asynchronous RL,
+              sampling and training are decoupled, with communication happening
+              through periodic weight syncs and a trajectory buffer.
+            </figcaption>
+          </figure>
+
+          <p>
+            This decoupling is why many practical RL systems have moved to async
+            pipelines, and why recent open model releases including GLM-5,
+            Ring-1T, Qwen3.5, and Kimi K2.5 already adopt asynchronous RL at
+            scale. The same trend is reflected in open-source infrastructure
+            such as AReaL, LlamaRL, PipelineRL, and Slime.
+          </p>
+
+          <figure class="article-figure wide">
+            <img src="../assets/blog/async-rl/figure-02-p2.png" alt="Conventional RL compared with PipelineRL-style asynchronous RL.">
+            <figcaption>
+              a) Conventional RL alternates between using all the GPUs for
+              generation and then training. b) Asynchronous RL runs generation
+              and training concurrently. Figure taken from PipelineRL (Piche et
+              al., 2025).
+            </figcaption>
+          </figure>
+
+          <p>
+            The catch is that the generated data is now stale. The policy used
+            to produce those trajectories is no longer exactly the same as the
+            policy being trained. This means async RL is off-policy.
+          </p>
+          <p>
+            In principle, we can use importance sampling to correct this
+            mismatch. Formally, the off-policy objective uses importance
+            sampling to reweight each trajectory by how much more (or less)
+            likely the current policy thinks it is compared to when it was
+            generated by the inference policy:
+          </p>
+          <div class="equation">
+            \[
+            \mathcal{J}_{\mathrm{off\text{-}policy}}(\theta)
+            =
+            \mathbb{E}_{x\sim\mathcal{D},\,\tau\sim\mu(\cdot\mid x)}
+            \left[
+            \frac{\pi_\theta(\tau\mid x)}{\mu(\tau\mid x)}
+            A(\tau,x)\log \pi_\theta(\tau\mid x)
+            \right].
+            \]
+          </div>
+          <p>
+            The importance-sampling (IS) ratio is doing the corrective work. But
+            as the policy drifts further from the behavior policy, those ratios
+            can become extreme, and that's where the instability starts to
+            appear.
+          </p>
+        </section>
+
+        <section>
+          <h2>The Staleness Problem</h2>
+          <p>
+            A useful way to describe this mismatch is by the policy lag K: the
+            number of optimization steps by which the training policy is ahead
+            of the inference policy. When K = 0, training is fully on-policy. As
+            K grows, the data becomes more stale. Many frameworks constrain this
+            staleness by only allowing the trajectory buffer to contain samples
+            within K steps of the current policy.
+          </p>
+          <p>
+            In this setting, \(K=\infty\) represents the theoretical ceiling of
+            async RL, the speed you'd get if you didn't constrain staleness at
+            all, training continuously on whatever trajectories are in the
+            buffer. Although in practice, the steady-state policy lag converges
+            to the ratio of inference throughput to training throughput. The
+            problem is that long-horizon tasks - exactly where you most want
+            async RL - are also the ones that demand the highest K to approach
+            that ceiling. Look at what happens as sequence length grows:
+          </p>
+
+          <figure class="article-figure">
+            <img src="../assets/blog/async-rl/async-speedup-staleness.svg" alt="Async RL time per step as maximum output length grows for different policy lags.">
+            <figcaption>
+              Lower time per step means faster training; the \(K=\infty\) line
+              is the update-only async ceiling.
+            </figcaption>
+          </figure>
+
+          <p>
+            At short sequences, \(K=4\) gets close to the update-only async
+            ceiling in time per step. But as sequences get longer - which is
+            exactly the regime of hard reasoning tasks, tool-use, and
+            long-context problems - \(K=4\) remains above the \(K=\infty\)
+            time-per-step ceiling. This means longer-horizon tasks create more
+            pressure to push policy lag K up.
+          </p>
+          <p>
+            There are many ways to control staleness in a async RL setting. We
+            can control the max staleness inside the replay buffer via either a
+            FIFO queue, e.g. MiniMax, or sampling that throws away samples past a
+            certain staleness level, e.g. like GLM-5.
+          </p>
+        </section>
+
+        <section>
+          <h2>2. Current State of Async RL Stability</h2>
+          <p>
+            GLM 5, Ring 1T, DeepSeek V3.2, Minimax M2.5 have all needed their
+            own version of off-policy controls for stabilizing asynchronous RL
+            at scale. Largely, most current methods are some form of reshaping
+            the IS weights. There are some other methods with a few changes the
+            estimator or changes to the infra to reduce training-inference
+            mismatch that is additional to the fundamental off-policy from
+            policy lag.
+          </p>
+
+          <table class="method-table">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+                <th>Used In</th>
+                <th>Biased?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Truncated Importance Sampling (TIS)</td>
+                <td>Clip token or sequence ratios to a fixed range.</td>
+                <td>AReaL, LlamaRL</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>CISPO</td>
+                <td>Same as TIS.</td>
+                <td>Minimax-M2.5</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>IcePop / Masked Importance Sampling (MIS)</td>
+                <td>Drop token, sequence, or geometric ratios outside a window.</td>
+                <td>Ring-1T, GLM-5</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>DeepSeek Masking</td>
+                <td>Mask negative trajectories when average log-ratio is large.</td>
+                <td>DeepSeek-V3.2</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>M2PO</td>
+                <td>Mask tokens until a second-order KL proxy is below threshold.</td>
+                <td></td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>2.1 Reshaping IS Weight: Masking and Clipping</h3>
+          <p>
+            Methods that reshape the importance weights try to reduce
+            policy-gradient variance, at the cost of introducing some bias. The
+            basic issue is already visible from the structure of the off-policy
+            correction itself. Our off-policy objective in Eq. (1) uses the
+            sequence-level importance ratio, which can be written as the product
+            of token-level ratios:
+          </p>
+          <div class="equation">
+            \[
+            w(\tau)\triangleq
+            \frac{\pi_\theta(\tau\mid x)}{\mu(\tau\mid x)}
+            =
+            \prod_{i=1}^{|\tau|}\rho(\tau,i),
+            \qquad
+            \rho(\tau,i)\triangleq
+            \frac{\pi_\theta(\tau_i\mid x,\tau_{&lt;i})}
+            {\mu(\tau_i\mid x,\tau_{&lt;i})}.
+            \]
+          </div>
+          <p>
+            The sequence-level weights \(w(\tau)\) is unbiased but it can be
+            extremely high variance. Even if token-level ratios are moderately
+            misaligned, multiplying them across a long trajectory can produce
+            very large or very small sequence weights. At this point, there is a
+            natural choice to make: should we work with token-level or
+            sequence-level importance weights?
+          </p>
+          <p>
+            In the original PPO and GRPO formulation, token-level ratios are
+            often good enough because consecutive policies are kept close. But
+            async RL is different: the rollout policy can be many updates stale,
+            so the real mismatch accumulates over the entire sequence. That
+            makes sequence-level importance weights the more faithful
+            description of the problem - but also the reason instability becomes
+            so severe.
+          </p>
+          <p>
+            This is exactly why clipping and masking become so common in Async
+            RL. Both try to prevent a small number of outlier ratios from
+            dominating the gradient. Notably, GLM 5, Ring 1T, DeepSeek V3.2,
+            Minimax M2.5 all use Clipping or Masking.
+          </p>
+          <p>
+            Clipping caps how extreme the token or sequence ratio is allowed to
+            become. Masking is more aggressive. Instead, it drops sample
+            entirely based on the token, sequence, or geometric-mean of the
+            ratios. There are some alternative methods as well. M2PO proposes to
+            drop tokens until the average squared log-ratio is less than some
+            threshold. DeepSeek V3.2 uses a related idea at the sequence level:
+            it keeps all non-negative samples, but masks negative trajectories
+            once their average log-ratio becomes too large. MiniMax's CISPO uses
+            clipping while allowing for gradient flow.
+          </p>
+
+          <h3>2.2 Instability at High-Policy Lag</h3>
+          <p>
+            So far, these defenses work reasonably well at low policy lag. At
+            small K, async RL can be both fast and stable. At larger K, however,
+            training can suddenly become fragile and even collapse.
+          </p>
+          <p>
+            We tested high policy-lag \(K=12\) training on GSM8k with Qwen2-1.5B,
+            sweeping across the various clipping and masking strategies that
+            have been proposed.
+          </p>
+
+          <figure class="article-figure">
+            <img src="../assets/blog/async-rl/figure-04-p8.png" alt="Ablation of clipping and masking methods under high policy lag.">
+            <figcaption>
+              Different clipping and masking strategies can delay instability,
+              but none is consistently robust in this high-lag setting (\(K=12\)).
+              Some variants collapse outright, while others show strong
+              sensitivity to threshold choice.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section>
+          <h2>3. The First Warning Sign: Effective Sample Size</h2>
+          <p>
+            Once training becomes off-policy, not all trajectories contribute
+            equally anymore. Some are still unrepresentative of the current
+            policy, while others are very representative and need very large
+            importance weights to increase their leverage. When that happens,
+            the batch stops behaving like a batch of B independent samples and
+            starts behaving like a much smaller one dominated by the higher
+            importance weights.
+          </p>
+
+          <figure class="article-figure wide">
+            <img src="../assets/blog/async-rl/figure-05-p9.png" alt="Why stale trajectories can become high leverage under importance sampling.">
+            <figcaption>
+              Why some stale trajectories become high leverage: trajectories are
+              sampled from the behavior policy, but importance sampling weights
+              them by \(\pi_\theta(\tau)/\mu(\tau)\). If the current policy assigns
+              much higher probability to a sampled trajectory than the behavior
+              policy did, that sample receives a large importance weight and can
+              disproportionately influence the update.
+            </figcaption>
+          </figure>
+
+          <p>
+            There is a statistics idea that measures this notion called the
+            effective sample size, essentially measuring how many effective data
+            points you have after accounting for the high importance weights
+            dominating. A common diagnostic is the effective sample size (ESS):
+          </p>
+          <div class="equation">
+            \[
+            \mathrm{ESS}
+            \triangleq
+            \frac{\left(\sum_{i=1}^{B} w(\tau_i)\right)^2}
+            {\sum_{i=1}^{B}w(\tau_i)^2}
+            \in [0,B],
+            \qquad
+            w(\tau_i)\triangleq
+            \frac{\pi_\theta(\tau_i)}{\mu(\tau_i)}.
+            \]
+          </div>
+          <p>
+            The intuition is straightforward. When training is fully on-policy,
+            all importance weights equal 1 and \(\mathrm{ESS}=B\) since you're getting full
+            value from every sample. But when one trajectory dominates with a
+            huge importance weight, ESS collapses toward 1 since you've
+            effectively thrown away the rest of your batch. The variance of your
+            gradient estimate scales as \(1/\mathrm{ESS}\), so a collapsing ESS means your
+            updates are getting noisier and noisier.
+          </p>
+
+          <h3>The Effective Sample Size Collapse</h3>
+          <p>
+            We tracked ESS across two async RL runs that were heading toward
+            collapse - Qwen2.5-7B at \(K=10\) on MATH, and Qwen2-1.5B at \(K=12\) on
+            GSM8k. The pattern was the same in both cases: ESS quietly declines
+            long before the crash happens.
+          </p>
+
+          <div class="figure-grid">
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-06-p10.png" alt="MATH run showing ESS collapse before instability.">
+            </figure>
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-07-p10.png" alt="GSM8k run showing ESS collapse before instability.">
+            </figure>
+          </div>
+        </section>
+
+        <section>
+          <h2>What This Means (and What Comes Next)</h2>
+          <h3>4. Fix #1: Take Smaller Steps on Noisy Batches</h3>
+          <p>
+            Similar to pretraining ideas of using gradient signal, we use ESS to
+            find optimal learning rates for each batch. Motivated by the
+            square-root scaling law \(\eta\propto\sqrt{B}\), we propose
+            learning-rate scaling via an effective batch-size rule:
+          </p>
+          <div class="equation">
+            \[
+            \eta_{\mathrm{eff}}\propto\sqrt{\rho_{\mathrm{ess}}},
+            \qquad
+            \rho_{\mathrm{ess}}\triangleq\frac{\mathrm{ESS}}{B}.
+            \]
+          </div>
+          <p>Show good results.</p>
+
+          <h3>5. Another Problem: A Few Trajectories Can Dominate the Update</h3>
+          <p>
+            Unfortunately, there are some trajectories that have much larger
+            gradient norms than other ones. This means some trajectories tend to
+            dominate the update. Fortunately, there is a way to reduce the noise
+            introduced these huge gradients, without adding bias to the
+            gradient.
+          </p>
+          <p>
+            Baselining is a fundamental technique for reducing the variance of
+            policy gradient without bias. In highly asynchronous training,
+            however, importance weighting changes the variance structure. We
+            thus derive the variance-minimizing baseline for an off-policy,
+            importance-weighted policy-gradient estimator.
+          </p>
+        </section>
+
+        <section>
+          <h2>6. Fix #2: An Optimal Baseline for Off-Policy RL</h2>
+          <p>
+            Consider the off-policy gradient estimator with a scalar baseline b:
+          </p>
+          <div class="equation">
+            \[
+            \widehat{G}(b)
+            =
+            \frac{1}{B}\sum_{i=1}^{B}
+            w(\tau_i)\left[R(\tau_i)-b\right]
+            \nabla_\theta\log\pi_\theta(\tau_i).
+            \]
+          </div>
+          <p>
+            Optimal Off-policy Baseline. Minimizing \(\mathrm{Var}(\widehat{G}(b))\) over scalar \(b\)
+            yields a closed-form solution for the off-policy optimal baseline
+            (OPOB):
+          </p>
+          <div class="equation">
+            \[
+            b_{\mathrm{OPOB}}^\star
+            =
+            \frac{
+              \sum_{i=1}^{B}
+              w(\tau_i)^2
+              \left\|\nabla_\theta\log\pi_\theta(\tau_i)\right\|^2
+              R(\tau_i)
+            }{
+              \sum_{i=1}^{B}
+              w(\tau_i)^2
+              \left\|\nabla_\theta\log\pi_\theta(\tau_i)\right\|^2
+            }.
+            \]
+          </div>
+          <p>
+            Compared to common group baselines, variance-optimal baselining in
+            the off-policy regime depends on both the importance weights and the
+            gradient magnitudes. Intuitively, samples that are both highly
+            upweighted off-policy and induce large parameter changes dominate
+            update variance and should therefore dominate the baseline.
+          </p>
+
+          <h3>6.1 Efficient Single Backward Pass Implementation</h3>
+          <p>
+            But how do we do a backward pass that requires the gradient
+            information from the backward pass itself? Turns out we can exploit
+            the linearity of our objective for a one backward pass
+            implementation.
+          </p>
+          <div class="equation">
+            \[
+            \widehat{\nabla J}(b)
+            =
+            \frac{1}{B}\sum_{i=1}^{B}
+            w(\tau_i)\left[R(\tau_i)-b\right]
+            \nabla\log\pi_\theta(\tau_i)
+            =
+            \frac{1}{B}\left(G_R-bG_S\right).
+            \]
+          </div>
+          <p>
+            Thus, for any chosen b, the final gradient can be formed by
+            combining two aggregated quantities G_R and G_S. We compute
+            per-sample score gradients once and accumulate them into two
+            gradient buffers:
+          </p>
+          <ol>
+            <li>G_R: a buffer that accumulates the reward-weighted gradients.</li>
+            <li>G_S: a buffer that accumulates the gradients.</li>
+          </ol>
+          <p>
+            Afterwards, we form the final update by a simple linear combination
+            of these buffers. This avoids any additional backward pass to
+            incorporate the baseline term.
+          </p>
+
+          <div class="figure-grid">
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-08-p14.png" alt="Single backward accumulation algorithm.">
+            </figure>
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-09-p14.png" alt="Compute and memory overhead of baseline-aware updates.">
+            </figure>
+          </div>
+          <p>
+            With this implementation, we only have a 19% compute time overhead
+            instead of a 100% overhead, with only additionally 14% memory
+            overhead.
+          </p>
+        </section>
+
+        <section>
+          <h2>7. Results</h2>
+          <figure class="article-figure wide">
+            <img src="../assets/blog/async-rl/figure-10-p14.png" alt="VCPO result curves for MATH500 and Countdown.">
+          </figure>
+
+          <h2>8. LLM Post-Training in 2026 (and Beyond)</h2>
+          <p>How We Compute It Efficiently</p>
+
+          <h3>0.1 Previous Approaches</h3>
+          <p>Previous approaches to stabilizing (possibly asynchronous) RL include:</p>
+          <ol>
+            <li>Masking / clipping mechanisms: M2PO, IcePop, sequence-level IS ratio masking, TIS, and DeepSeek masking.</li>
+            <li>Algorithmic changes: trajectory balance asynchrony, GSPO, sequence-level importance sampling, and optimal token baselines.</li>
+            <li>System-side changes: fp16 inference and training, and rollout routing replay.</li>
+          </ol>
+
+          <div class="figure-grid">
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-11-p16.png" alt="ESS as leading indicator of collapse.">
+              <figcaption>Insight 1: Effective Sample Size is a leading indicator of collapse.</figcaption>
+            </figure>
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-12-p16.png" alt="Gradient noise under high asynchrony.">
+              <figcaption>Insight 2: Gradient noise is highly noisy.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section>
+          <h2>1. VCPO: Robust, Scalable Asynchronous Post Training</h2>
+          <h3>1.1 Off-policy staleness =&gt; Importance weights blow up =&gt; ESS collapses</h3>
+          <p>
+            In asynchronous RL, the trainer updates \(\pi_\theta\) while rollouts are
+            generated by a stale policy \(\mu\). The policy gradient uses importance
+            sampling weights. As staleness grows, KL grows, log-ratios become
+            heavy-tailed, and a few trajectories dominate the update: one sample
+            rules them all.
+          </p>
+          <p>
+            Effective Sample Size summarizes this. Interpretation: your update
+            behaves like it only used \(\mathrm{ESS}\) samples, so variance scales roughly
+            like \(1/\mathrm{ESS}\). Practical symptom: when ESS collapses, gradients spike
+            and KL runs away.
+          </p>
+          <p>
+            Thus, motivated by the square-root scaling law for adaptive
+            optimizers such as AdamW, we propose learning-rate scaling via an
+            effective batch-size rule. Because even on-policy/synchronous
+            training can have \(\rho_{\mathrm{ess}}^{\mathrm{on}}&lt;1\) in practice, we introduce an
+            empirical on-policy reference estimated from one step of an
+            on-policy run, or a running average of a few steps. We then rescale
+            the step size by the relative reliability of the batch.
+          </p>
+          <div class="equation">
+            \[
+            \eta_{\mathrm{eff}}
+            =
+            \eta\sqrt{
+            \frac{\rho_{\mathrm{ess}}^{\mathrm{off}}}
+            {\rho_{\mathrm{ess}}^{\mathrm{on}}}
+            }.
+            \]
+          </div>
+          <p>
+            This scaling preserves the on-policy step scale when \(\rho_{\mathrm{ess}}\) is near
+            the on-policy reference, and automatically shrinks updates as
+            \(\rho_{\mathrm{ess}}\) collapses.
+          </p>
+
+          <h3>1.2 Off Policy Optimal Baseline: A Closed Form Solution for Minimum Variance</h3>
+          <p>
+            Subtracting a baseline does not change the expected gradient, but it
+            can reduce variance. In group methods people often use the mean
+            reward within a group. That implicitly assumes each sample
+            contributes equally to the parameter update. But in reality,
+            different samples and tokens have very different gradient
+            magnitudes. The baseline should weight rewards by how much they
+            actually move parameters.
+          </p>
+          <p>
+            For per-sample gradient vectors \(g_i\) and IS weights \(w_i\), the
+            variance-minimizing scalar baseline is OPOB. Samples with bigger
+            \(\lVert g_i\rVert\) are the ones injecting most variance into the parameter
+            update, so they should dominate the baseline.
+          </p>
+
+          <h3>1.3 VCPO</h3>
+          <ul>
+            <li>Compute \(\lVert g_i\rVert^2\) per sample.</li>
+            <li>Replace mean reward baseline with the grad-norm-weighted baseline.</li>
+            <li>This reduces gradient variance without learning a critic.</li>
+            <li>Current implementation note: computing \(\lVert g_i\rVert\) via a second backward pass costs 2x step time.</li>
+            <li>Clear optimization target later: use kernels that return gradient norm.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>2. Empirical Evaluation</h2>
+          <h3>2.1 VCPO Matches Synchronous Performance with Better Throughput</h3>
+          <figure class="article-figure wide">
+            <img src="../assets/blog/async-rl/figure-13-p19.png" alt="VCPO matches synchronous performance with better throughput.">
+          </figure>
+
+          <h3>2.2 VCPO Provides State of the Art Stability Under High Asynchrony</h3>
+          <div class="figure-grid">
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-14-p20.png" alt="VCPO stability under high asynchrony on GSM8k.">
+            </figure>
+            <figure class="article-figure">
+              <img src="../assets/blog/async-rl/figure-15-p20.png" alt="Ablation of masking and clipping methods on GSM8k.">
+            </figure>
+          </div>
+
+          <p>Previous algorithmic and systems changes solutions are not enough.</p>
+          <ul>
+            <li>Optimal Token Baseline and Sequence Level Importance Sampling collapses.</li>
+            <li>Using fp16 leads to a training crash and KL explosion.</li>
+          </ul>
+
+          <h3>2.3 Unlocking Full Effectiveness of Async RL</h3>
+          <p>2.5x speedups on long-context tool-integrated reasoning.</p>
+        </section>
+
+        <section>
+          <h2>Future Work</h2>
+          <ol>
+            <li>FP8 rollouts + training in the production throughput setting. FP8 is the standard to scale RL throughput.</li>
+            <li>MoE models and routing logic.</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>Citation</h2>
+          <pre class="citation"><code>@article{
+  title = {Stable Asynchrony: Variance-Controlled Off-Policy RL for LLMs}
+  author = {Luke J. Huang, Zhuoyang Zhang, Qinghao Hu, Shang Yang, Song Han},
+  year = {2026},
+  month = Feb,
+  url = {https://arxiv.org/abs/2602.17616}
+}</code></pre>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>

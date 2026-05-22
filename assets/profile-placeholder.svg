@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Profile placeholder</title>
+  <desc id="desc">A simple circular profile placeholder with the initials LH.</desc>
+  <defs>
+    <linearGradient id="bg" x1="36" x2="204" y1="28" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f4f7fb"/>
+      <stop offset="1" stop-color="#dbe6f7"/>
+    </linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="120" fill="url(#bg)"/>
+  <circle cx="120" cy="92" r="39" fill="#ffffff"/>
+  <path fill="#ffffff" d="M45 219c8-46 38-73 75-73s67 27 75 73a119 119 0 0 1-150 0Z"/>
+  <text x="120" y="135" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#598be7">LH</text>
+</svg>

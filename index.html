@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Personal website for Luke J. Huang.">
+    <title>Luke J. Huang</title>
+    <script src="theme.js?v=theme-toggle-2"></script>
+    <link rel="stylesheet" href="styles.css?v=nav-home">
+  </head>
+  <body>
+    <header class="site-nav">
+      <a class="site-brand" href="index.html">Luke J. Huang</a>
+      <a class="site-nav-link" href="index.html">Home</a>
+      <details class="site-dropdown">
+        <summary>Blog</summary>
+        <div class="dropdown-panel">
+          <a href="blog.html">All posts</a>
+          <a href="blog/is-anybody-doing-async-rl-correctly.html">Is Anybody Doing Async RL Correctly?</a>
+        </div>
+      </details>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+        <svg class="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+        </svg>
+      </button>
+    </header>
+
+    <main class="page">
+      <section class="intro" aria-labelledby="name">
+        <div class="intro-copy">
+          <h1 id="name">Luke J. Huang</h1>
+          <p class="subtitle-line">
+            <a href="mailto:lukh23@mit.edu">lukh23@mit.edu</a>
+            <span aria-hidden="true">|</span>
+            Physics + CS @ MIT
+          </p>
+
+          <p>
+            Hey! I'm Luke. I'm a Physics + CS student at MIT and a Member of
+            Technical Staff Resident at OpenAI. My work focuses on reasoning,
+            efficient AI computing, reinforcement learning for LLMs, and
+            fast generative models.
+          </p>
+
+          <nav class="links" aria-label="Primary links">
+            <a href="https://github.com/luk-huang">GitHub</a>
+            <span aria-hidden="true">|</span>
+            <a href="https://www.linkedin.com/in/luke-huang-b13b38245/">LinkedIn</a>
+            <span aria-hidden="true">|</span>
+            <a href="https://scholar.google.com/citations?hl=en&amp;user=P6dgb9gAAAAJ">Google Scholar</a>
+            <span aria-hidden="true">|</span>
+            <a href="assets/Luke_Huang_Resume.pdf">Resume</a>
+          </nav>
+        </div>
+
+        <div class="photo-wrap">
+          <img class="profile-photo" src="assets/profile-placeholder.svg" alt="Profile placeholder">
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="publications-heading">
+        <h2 id="publications-heading">Publications &amp; Preprints</h2>
+
+        <article class="entry">
+          <h3>Stable Asynchrony: Variance-Controlled Off-Policy RL for LLMs</h3>
+          <p>
+            <strong>Luke J. Huang</strong>, Zhuoyang Zhang, Qinghao Hu,
+            Shang Yang, Song Han
+          </p>
+          <p class="entry-meta">ICML 2026</p>
+          <p class="entry-links">
+            <a href="https://arxiv.org/abs/2602.17616">paper</a> |
+            <a href="https://github.com/mit-han-lab/vcpo/">code</a>
+          </p>
+        </article>
+
+        <article class="entry">
+          <h3>Locality-Aware Parallel Decoding for Efficient Autoregressive Image Generation</h3>
+          <p>
+            Zhuoyang Zhang*, <strong>Luke J. Huang</strong>*, Chengyue Wu,
+            Shang Yang, Kelly Peng, Yao Lu, Song Han
+          </p>
+          <p class="entry-meta">ICLR 2026 Oral, Top 1.13%</p>
+          <p class="entry-links">
+            <a href="https://arxiv.org/pdf/2507.01957">paper</a> |
+            <a href="https://github.com/mit-han-lab/lpd/">code</a>
+          </p>
+        </article>
+
+        <article class="entry">
+          <h3>ForeAct: Steering Your VLA with Efficient Visual Foresight Planning</h3>
+          <p>
+            Zhuoyang Zhang, Shang Yang, Qinghao Hu, <strong>Luke J. Huang</strong>,
+            Jianing Hou, Yifu Sun, Yao Lu, Song Han
+          </p>
+          <p class="entry-meta">CVPR 2026</p>
+          <p class="entry-links">
+            <a href="https://arxiv.org/abs/2602.12322">paper</a> |
+            <a href="https://github.com/mit-han-lab/foreact">code</a>
+          </p>
+        </article>
+
+        <article class="entry">
+          <h3>AI-Driven Robotics for Free-Space Optics</h3>
+          <p>
+            Shiekh Zia Uddin*, Sachin Vaidya*, Sarthak Choudhary, Zhuo Chen,
+            Ronald K. Salib, <strong>Luke J. Huang</strong>, Dirk R. Englund,
+            Marin A. Soljacic
+          </p>
+          <p class="entry-meta">arXiv preprint, 2025</p>
+          <p class="entry-links">
+            <a href="https://arxiv.org/pdf/2505.17985">paper</a>
+          </p>
+        </article>
+      </section>
+
+      <section class="section two-level" aria-labelledby="experience-heading">
+        <h2 id="experience-heading">Experience</h2>
+
+        <article>
+          <h3>OpenAI <span class="date">(May 2026 - Present)</span></h3>
+          <p class="role">Member of Technical Staff Resident, San Francisco</p>
+          <p>
+            Working on pretraining.
+          </p>
+        </article>
+
+        <article>
+          <h3>Applied Compute <span class="date">(Jun 2025 - Sep 2025)</span></h3>
+          <p class="role">Research Scientist Intern, San Francisco</p>
+          <p>
+            Built large-scale RL training infrastructure for out-of-distribution
+            reasoning tasks, including an asynchronous RL framework and a
+            Torchtitan/FSDP backend for 100B+ MoE models.
+          </p>
+        </article>
+
+        <article>
+          <h3>Han AI Lab <span class="date">(Aug 2024 - Present)</span></h3>
+          <p class="role">Researcher, Cambridge</p>
+          <p>
+            Researching robust asynchronous RL, efficient autoregressive image
+            generation, and low-latency generative models for VLA systems.
+          </p>
+        </article>
+      </section>
+
+      <section class="section two-level" aria-labelledby="education-heading">
+        <h2 id="education-heading">Education</h2>
+
+        <article>
+          <h3>Massachusetts Institute of Technology <span class="date">(Fall 2024 - Present)</span></h3>
+          <p>Physics + CS, 5.0/5.0 GPA</p>
+        </article>
+
+        <article>
+          <h3>Selected Coursework</h3>
+          <p>
+            Distributed Systems, Mathematical Statistics, Deep Learning,
+            Information Theory, Inference and Information, Design and Analysis
+            of Algorithms, Algebra I, Quantum Physics III.
+          </p>
+        </article>
+      </section>
+
+      <section class="section two-level" aria-labelledby="awards-heading">
+        <h2 id="awards-heading">Honors &amp; Awards</h2>
+        <article>
+          <h3>Selected</h3>
+          <p>
+            Putnam Top 200, 2024 U.S. IPhO Team and Gold Medalist, Regeneron
+            STS Finalist, Math Olympiad Program attendee, USA(J)MO winner, and
+            RSI Scholar.
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

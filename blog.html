@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Blog posts by Luke J. Huang.">
+    <title>Blog - Luke J. Huang</title>
+    <script src="theme.js?v=theme-toggle-2"></script>
+    <link rel="stylesheet" href="styles.css?v=nav-home">
+  </head>
+  <body>
+    <header class="site-nav">
+      <a class="site-brand" href="index.html">Luke J. Huang</a>
+      <a class="site-nav-link" href="index.html">Home</a>
+      <details class="site-dropdown">
+        <summary>Blog</summary>
+        <div class="dropdown-panel">
+          <a href="blog.html">All posts</a>
+          <a href="blog/is-anybody-doing-async-rl-correctly.html">Is Anybody Doing Async RL Correctly?</a>
+        </div>
+      </details>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+        <svg class="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+        </svg>
+      </button>
+    </header>
+
+    <main class="page">
+      <header class="simple-header">
+        <h1>Blog</h1>
+        <p>
+          Notes on reinforcement learning, efficient AI systems, and research
+          ideas that are useful enough to write down.
+        </p>
+      </header>
+
+      <section class="section" aria-labelledby="posts-heading">
+        <h2 id="posts-heading">Posts</h2>
+        <article class="entry blog-preview">
+          <h3><a href="blog/is-anybody-doing-async-rl-correctly.html">Is Anybody Doing Async RL Correctly?</a></h3>
+          <p class="entry-meta">May 2026</p>
+          <p>
+            Async RL can unlock much higher training throughput, but stale
+            trajectories turn the update into a fragile off-policy estimator.
+            This post explains why clipping and masking only partially help,
+            why effective sample size is an early collapse signal, and how
+            variance-controlled updates stabilize high-lag training.
+          </p>
+          <p class="entry-links">
+            <a href="blog/is-anybody-doing-async-rl-correctly.html">read</a>
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
