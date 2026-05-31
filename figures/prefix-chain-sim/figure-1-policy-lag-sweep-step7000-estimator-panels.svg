@@ -1,0 +1,284 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 920" role="img" aria-labelledby="title desc">
+<title id="title">Robustness to High Policy Lag</title>
+<desc id="desc">Multi-success prefix chain; H=1024, seed=3, checkpoint=7,000; batch sizes B=8..4096</desc>
+<style>
+svg { background: #fff; color: #111; font-family: 'Source Sans 3', 'Source Sans Pro', Arial, sans-serif; }
+.title { font-size: 24px; font-weight: 650; fill: #111; }
+.panel-title { font-size: 18px; font-weight: 700; }
+.tick { fill: #555; font-size: 11px; }
+.axis { fill: #111; font-size: 13px; font-weight: 650; }
+.axis-y { fill: #111; font-size: 17px; font-weight: 700; }
+.grid { stroke: #e8edf5; stroke-width: 1; }
+.axis-line { stroke: #111; stroke-width: 1; }
+.plot-line { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.legend-title { fill: #111; font-size: 16px; font-weight: 700; }
+.legend { font-size: 15px; fill: #333; }
+</style>
+<rect x="0.5" y="0.5" width="979" height="919" fill="#fff" stroke="#ececec"/>
+<text class="title" x="34" y="42">Robustness to High Policy Lag</text>
+<text class="panel-title" x="86" y="78" fill="#1f6feb">Sequence IS</text>
+<rect x="86" y="96" width="660" height="210" fill="#fff"/>
+<line class="grid" x1="86.0" y1="96" x2="86.0" y2="306"/>
+<line class="grid" x1="152.0" y1="96" x2="152.0" y2="306"/>
+<line class="grid" x1="251.0" y1="96" x2="251.0" y2="306"/>
+<line class="grid" x1="416.0" y1="96" x2="416.0" y2="306"/>
+<line class="grid" x1="746.0" y1="96" x2="746.0" y2="306"/>
+<line class="grid" x1="86" y1="306.0" x2="746" y2="306.0"/>
+<text class="tick" x="76" y="310.0" text-anchor="end">0</text>
+<line class="grid" x1="86" y1="253.5" x2="746" y2="253.5"/>
+<text class="tick" x="76" y="257.5" text-anchor="end">0.25</text>
+<line class="grid" x1="86" y1="201.0" x2="746" y2="201.0"/>
+<text class="tick" x="76" y="205.0" text-anchor="end">0.5</text>
+<line class="grid" x1="86" y1="148.5" x2="746" y2="148.5"/>
+<text class="tick" x="76" y="152.5" text-anchor="end">0.75</text>
+<line class="grid" x1="86" y1="96.0" x2="746" y2="96.0"/>
+<text class="tick" x="76" y="100.0" text-anchor="end">1</text>
+<line class="axis-line" x1="86" y1="306" x2="746" y2="306"/>
+<line class="axis-line" x1="86" y1="96" x2="86" y2="306"/>
+<path class="plot-line" d="M86.0,170.0 L152.0,184.9 L251.0,296.2 L416.0,280.2 L746.0,302.7" stroke="#1f6feb" stroke-width="1.35" stroke-opacity="0.2"/>
+<circle cx="86.0" cy="170.0" r="2.8" fill="#1f6feb" fill-opacity="0.2"><title>Sequence IS B=8 K=0: 0.6475</title></circle>
+<circle cx="152.0" cy="184.9" r="2.8" fill="#1f6feb" fill-opacity="0.2"><title>Sequence IS B=8 K=100: 0.5768</title></circle>
+<circle cx="251.0" cy="296.2" r="2.8" fill="#1f6feb" fill-opacity="0.2"><title>Sequence IS B=8 K=250: 0.0465</title></circle>
+<circle cx="416.0" cy="280.2" r="2.8" fill="#1f6feb" fill-opacity="0.2"><title>Sequence IS B=8 K=500: 0.1229</title></circle>
+<circle cx="746.0" cy="302.7" r="2.8" fill="#1f6feb" fill-opacity="0.2"><title>Sequence IS B=8 K=1000: 0.0156</title></circle>
+<path class="plot-line" d="M86.0,164.9 L152.0,164.6 L251.0,228.1 L416.0,297.2 L746.0,280.0" stroke="#1f6feb" stroke-width="1.45" stroke-opacity="0.27"/>
+<circle cx="86.0" cy="164.9" r="2.8" fill="#1f6feb" fill-opacity="0.27"><title>Sequence IS B=16 K=0: 0.6720</title></circle>
+<circle cx="152.0" cy="164.6" r="2.8" fill="#1f6feb" fill-opacity="0.27"><title>Sequence IS B=16 K=100: 0.6731</title></circle>
+<circle cx="251.0" cy="228.1" r="2.8" fill="#1f6feb" fill-opacity="0.27"><title>Sequence IS B=16 K=250: 0.3710</title></circle>
+<circle cx="416.0" cy="297.2" r="2.8" fill="#1f6feb" fill-opacity="0.27"><title>Sequence IS B=16 K=500: 0.0420</title></circle>
+<circle cx="746.0" cy="280.0" r="2.8" fill="#1f6feb" fill-opacity="0.27"><title>Sequence IS B=16 K=1000: 0.1237</title></circle>
+<path class="plot-line" d="M86.0,156.3 L152.0,155.7 L251.0,157.3 L416.0,217.2 L746.0,268.8" stroke="#1f6feb" stroke-width="1.6" stroke-opacity="0.34"/>
+<circle cx="86.0" cy="156.3" r="2.8" fill="#1f6feb" fill-opacity="0.34"><title>Sequence IS B=32 K=0: 0.7128</title></circle>
+<circle cx="152.0" cy="155.7" r="2.8" fill="#1f6feb" fill-opacity="0.34"><title>Sequence IS B=32 K=100: 0.7156</title></circle>
+<circle cx="251.0" cy="157.3" r="2.8" fill="#1f6feb" fill-opacity="0.34"><title>Sequence IS B=32 K=250: 0.7083</title></circle>
+<circle cx="416.0" cy="217.2" r="2.8" fill="#1f6feb" fill-opacity="0.34"><title>Sequence IS B=32 K=500: 0.4227</title></circle>
+<circle cx="746.0" cy="268.8" r="2.8" fill="#1f6feb" fill-opacity="0.34"><title>Sequence IS B=32 K=1000: 0.1773</title></circle>
+<path class="plot-line" d="M86.0,153.7 L152.0,154.1 L251.0,154.8 L416.0,157.5 L746.0,212.8" stroke="#1f6feb" stroke-width="1.8" stroke-opacity="0.42"/>
+<circle cx="86.0" cy="153.7" r="2.8" fill="#1f6feb" fill-opacity="0.42"><title>Sequence IS B=64 K=0: 0.7251</title></circle>
+<circle cx="152.0" cy="154.1" r="2.8" fill="#1f6feb" fill-opacity="0.42"><title>Sequence IS B=64 K=100: 0.7233</title></circle>
+<circle cx="251.0" cy="154.8" r="2.8" fill="#1f6feb" fill-opacity="0.42"><title>Sequence IS B=64 K=250: 0.7201</title></circle>
+<circle cx="416.0" cy="157.5" r="2.8" fill="#1f6feb" fill-opacity="0.42"><title>Sequence IS B=64 K=500: 0.7071</title></circle>
+<circle cx="746.0" cy="212.8" r="2.8" fill="#1f6feb" fill-opacity="0.42"><title>Sequence IS B=64 K=1000: 0.4440</title></circle>
+<path class="plot-line" d="M86.0,152.5 L152.0,152.1 L251.0,152.0 L416.0,153.0 L746.0,155.1" stroke="#1f6feb" stroke-width="2.0" stroke-opacity="0.5"/>
+<circle cx="86.0" cy="152.5" r="2.8" fill="#1f6feb" fill-opacity="0.5"><title>Sequence IS B=128 K=0: 0.7309</title></circle>
+<circle cx="152.0" cy="152.1" r="2.8" fill="#1f6feb" fill-opacity="0.5"><title>Sequence IS B=128 K=100: 0.7328</title></circle>
+<circle cx="251.0" cy="152.0" r="2.8" fill="#1f6feb" fill-opacity="0.5"><title>Sequence IS B=128 K=250: 0.7332</title></circle>
+<circle cx="416.0" cy="153.0" r="2.8" fill="#1f6feb" fill-opacity="0.5"><title>Sequence IS B=128 K=500: 0.7286</title></circle>
+<circle cx="746.0" cy="155.1" r="2.8" fill="#1f6feb" fill-opacity="0.5"><title>Sequence IS B=128 K=1000: 0.7185</title></circle>
+<path class="plot-line" d="M86.0,150.2 L152.0,150.4 L251.0,150.4 L416.0,150.2 L746.0,151.2" stroke="#1f6feb" stroke-width="2.2" stroke-opacity="0.59"/>
+<circle cx="86.0" cy="150.2" r="2.8" fill="#1f6feb" fill-opacity="0.59"><title>Sequence IS B=256 K=0: 0.7418</title></circle>
+<circle cx="152.0" cy="150.4" r="2.8" fill="#1f6feb" fill-opacity="0.59"><title>Sequence IS B=256 K=100: 0.7411</title></circle>
+<circle cx="251.0" cy="150.4" r="2.8" fill="#1f6feb" fill-opacity="0.59"><title>Sequence IS B=256 K=250: 0.7409</title></circle>
+<circle cx="416.0" cy="150.2" r="2.8" fill="#1f6feb" fill-opacity="0.59"><title>Sequence IS B=256 K=500: 0.7417</title></circle>
+<circle cx="746.0" cy="151.2" r="2.8" fill="#1f6feb" fill-opacity="0.59"><title>Sequence IS B=256 K=1000: 0.7369</title></circle>
+<path class="plot-line" d="M86.0,149.5 L152.0,149.5 L251.0,149.3 L416.0,149.6 L746.0,149.5" stroke="#1f6feb" stroke-width="2.45" stroke-opacity="0.68"/>
+<circle cx="86.0" cy="149.5" r="2.8" fill="#1f6feb" fill-opacity="0.68"><title>Sequence IS B=512 K=0: 0.7452</title></circle>
+<circle cx="152.0" cy="149.5" r="2.8" fill="#1f6feb" fill-opacity="0.68"><title>Sequence IS B=512 K=100: 0.7454</title></circle>
+<circle cx="251.0" cy="149.3" r="2.8" fill="#1f6feb" fill-opacity="0.68"><title>Sequence IS B=512 K=250: 0.7462</title></circle>
+<circle cx="416.0" cy="149.6" r="2.8" fill="#1f6feb" fill-opacity="0.68"><title>Sequence IS B=512 K=500: 0.7448</title></circle>
+<circle cx="746.0" cy="149.5" r="2.8" fill="#1f6feb" fill-opacity="0.68"><title>Sequence IS B=512 K=1000: 0.7451</title></circle>
+<path class="plot-line" d="M86.0,149.3 L152.0,149.3 L251.0,149.4 L416.0,149.7 L746.0,150.1" stroke="#1f6feb" stroke-width="2.7" stroke-opacity="0.78"/>
+<circle cx="86.0" cy="149.3" r="2.8" fill="#1f6feb" fill-opacity="0.78"><title>Sequence IS B=1024 K=0: 0.7463</title></circle>
+<circle cx="152.0" cy="149.3" r="2.8" fill="#1f6feb" fill-opacity="0.78"><title>Sequence IS B=1024 K=100: 0.7460</title></circle>
+<circle cx="251.0" cy="149.4" r="2.8" fill="#1f6feb" fill-opacity="0.78"><title>Sequence IS B=1024 K=250: 0.7458</title></circle>
+<circle cx="416.0" cy="149.7" r="2.8" fill="#1f6feb" fill-opacity="0.78"><title>Sequence IS B=1024 K=500: 0.7445</title></circle>
+<circle cx="746.0" cy="150.1" r="2.8" fill="#1f6feb" fill-opacity="0.78"><title>Sequence IS B=1024 K=1000: 0.7424</title></circle>
+<path class="plot-line" d="M86.0,148.5 L152.0,148.7 L251.0,148.6 L416.0,148.8 L746.0,149.1" stroke="#1f6feb" stroke-width="2.95" stroke-opacity="0.89"/>
+<circle cx="86.0" cy="148.5" r="2.8" fill="#1f6feb" fill-opacity="0.89"><title>Sequence IS B=2048 K=0: 0.7499</title></circle>
+<circle cx="152.0" cy="148.7" r="2.8" fill="#1f6feb" fill-opacity="0.89"><title>Sequence IS B=2048 K=100: 0.7490</title></circle>
+<circle cx="251.0" cy="148.6" r="2.8" fill="#1f6feb" fill-opacity="0.89"><title>Sequence IS B=2048 K=250: 0.7494</title></circle>
+<circle cx="416.0" cy="148.8" r="2.8" fill="#1f6feb" fill-opacity="0.89"><title>Sequence IS B=2048 K=500: 0.7486</title></circle>
+<circle cx="746.0" cy="149.1" r="2.8" fill="#1f6feb" fill-opacity="0.89"><title>Sequence IS B=2048 K=1000: 0.7473</title></circle>
+<path class="plot-line" d="M86.0,148.2 L152.0,148.3 L251.0,148.3 L416.0,148.4 L746.0,148.5" stroke="#1f6feb" stroke-width="3.2" stroke-opacity="1.0"/>
+<circle cx="86.0" cy="148.2" r="2.8" fill="#1f6feb" fill-opacity="1.0"><title>Sequence IS B=4096 K=0: 0.7514</title></circle>
+<circle cx="152.0" cy="148.3" r="2.8" fill="#1f6feb" fill-opacity="1.0"><title>Sequence IS B=4096 K=100: 0.7512</title></circle>
+<circle cx="251.0" cy="148.3" r="2.8" fill="#1f6feb" fill-opacity="1.0"><title>Sequence IS B=4096 K=250: 0.7510</title></circle>
+<circle cx="416.0" cy="148.4" r="2.8" fill="#1f6feb" fill-opacity="1.0"><title>Sequence IS B=4096 K=500: 0.7504</title></circle>
+<circle cx="746.0" cy="148.5" r="2.8" fill="#1f6feb" fill-opacity="1.0"><title>Sequence IS B=4096 K=1000: 0.7499</title></circle>
+<text class="panel-title" x="86" y="342" fill="#6b7280">Token IS</text>
+<rect x="86" y="360" width="660" height="210" fill="#fff"/>
+<line class="grid" x1="86.0" y1="360" x2="86.0" y2="570"/>
+<line class="grid" x1="152.0" y1="360" x2="152.0" y2="570"/>
+<line class="grid" x1="251.0" y1="360" x2="251.0" y2="570"/>
+<line class="grid" x1="416.0" y1="360" x2="416.0" y2="570"/>
+<line class="grid" x1="746.0" y1="360" x2="746.0" y2="570"/>
+<line class="grid" x1="86" y1="570.0" x2="746" y2="570.0"/>
+<text class="tick" x="76" y="574.0" text-anchor="end">0</text>
+<line class="grid" x1="86" y1="517.5" x2="746" y2="517.5"/>
+<text class="tick" x="76" y="521.5" text-anchor="end">0.25</text>
+<line class="grid" x1="86" y1="465.0" x2="746" y2="465.0"/>
+<text class="tick" x="76" y="469.0" text-anchor="end">0.5</text>
+<line class="grid" x1="86" y1="412.5" x2="746" y2="412.5"/>
+<text class="tick" x="76" y="416.5" text-anchor="end">0.75</text>
+<line class="grid" x1="86" y1="360.0" x2="746" y2="360.0"/>
+<text class="tick" x="76" y="364.0" text-anchor="end">1</text>
+<line class="axis-line" x1="86" y1="570" x2="746" y2="570"/>
+<line class="axis-line" x1="86" y1="360" x2="86" y2="570"/>
+<path class="plot-line" d="M86.0,434.0 L152.0,444.7 L251.0,478.0 L416.0,507.5 L746.0,533.8" stroke="#6b7280" stroke-width="1.35" stroke-opacity="0.2"/>
+<circle cx="86.0" cy="434.0" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>Token IS B=8 K=0: 0.6475</title></circle>
+<circle cx="152.0" cy="444.7" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>Token IS B=8 K=100: 0.5966</title></circle>
+<circle cx="251.0" cy="478.0" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>Token IS B=8 K=250: 0.4381</title></circle>
+<circle cx="416.0" cy="507.5" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>Token IS B=8 K=500: 0.2976</title></circle>
+<circle cx="746.0" cy="533.8" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>Token IS B=8 K=1000: 0.1723</title></circle>
+<path class="plot-line" d="M86.0,428.9 L152.0,440.4 L251.0,463.2 L416.0,499.4 L746.0,531.6" stroke="#6b7280" stroke-width="1.45" stroke-opacity="0.27"/>
+<circle cx="86.0" cy="428.9" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>Token IS B=16 K=0: 0.6720</title></circle>
+<circle cx="152.0" cy="440.4" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>Token IS B=16 K=100: 0.6173</title></circle>
+<circle cx="251.0" cy="463.2" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>Token IS B=16 K=250: 0.5088</title></circle>
+<circle cx="416.0" cy="499.4" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>Token IS B=16 K=500: 0.3361</title></circle>
+<circle cx="746.0" cy="531.6" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>Token IS B=16 K=1000: 0.1830</title></circle>
+<path class="plot-line" d="M86.0,420.3 L152.0,431.9 L251.0,455.4 L416.0,492.8 L746.0,529.0" stroke="#6b7280" stroke-width="1.6" stroke-opacity="0.34"/>
+<circle cx="86.0" cy="420.3" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>Token IS B=32 K=0: 0.7128</title></circle>
+<circle cx="152.0" cy="431.9" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>Token IS B=32 K=100: 0.6577</title></circle>
+<circle cx="251.0" cy="455.4" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>Token IS B=32 K=250: 0.5456</title></circle>
+<circle cx="416.0" cy="492.8" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>Token IS B=32 K=500: 0.3676</title></circle>
+<circle cx="746.0" cy="529.0" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>Token IS B=32 K=1000: 0.1950</title></circle>
+<path class="plot-line" d="M86.0,417.7 L152.0,430.7 L251.0,453.0 L416.0,489.7 L746.0,527.0" stroke="#6b7280" stroke-width="1.8" stroke-opacity="0.42"/>
+<circle cx="86.0" cy="417.7" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>Token IS B=64 K=0: 0.7251</title></circle>
+<circle cx="152.0" cy="430.7" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>Token IS B=64 K=100: 0.6632</title></circle>
+<circle cx="251.0" cy="453.0" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>Token IS B=64 K=250: 0.5571</title></circle>
+<circle cx="416.0" cy="489.7" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>Token IS B=64 K=500: 0.3825</title></circle>
+<circle cx="746.0" cy="527.0" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>Token IS B=64 K=1000: 0.2050</title></circle>
+<path class="plot-line" d="M86.0,416.5 L152.0,427.2 L251.0,450.0 L416.0,488.1 L746.0,525.9" stroke="#6b7280" stroke-width="2.0" stroke-opacity="0.5"/>
+<circle cx="86.0" cy="416.5" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>Token IS B=128 K=0: 0.7309</title></circle>
+<circle cx="152.0" cy="427.2" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>Token IS B=128 K=100: 0.6798</title></circle>
+<circle cx="251.0" cy="450.0" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>Token IS B=128 K=250: 0.5713</title></circle>
+<circle cx="416.0" cy="488.1" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>Token IS B=128 K=500: 0.3901</title></circle>
+<circle cx="746.0" cy="525.9" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>Token IS B=128 K=1000: 0.2099</title></circle>
+<path class="plot-line" d="M86.0,414.2 L152.0,425.4 L251.0,447.8 L416.0,484.9 L746.0,524.1" stroke="#6b7280" stroke-width="2.2" stroke-opacity="0.59"/>
+<circle cx="86.0" cy="414.2" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>Token IS B=256 K=0: 0.7418</title></circle>
+<circle cx="152.0" cy="425.4" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>Token IS B=256 K=100: 0.6884</title></circle>
+<circle cx="251.0" cy="447.8" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>Token IS B=256 K=250: 0.5821</title></circle>
+<circle cx="416.0" cy="484.9" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>Token IS B=256 K=500: 0.4054</title></circle>
+<circle cx="746.0" cy="524.1" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>Token IS B=256 K=1000: 0.2187</title></circle>
+<path class="plot-line" d="M86.0,413.5 L152.0,424.4 L251.0,446.0 L416.0,483.7 L746.0,523.4" stroke="#6b7280" stroke-width="2.45" stroke-opacity="0.68"/>
+<circle cx="86.0" cy="413.5" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>Token IS B=512 K=0: 0.7452</title></circle>
+<circle cx="152.0" cy="424.4" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>Token IS B=512 K=100: 0.6934</title></circle>
+<circle cx="251.0" cy="446.0" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>Token IS B=512 K=250: 0.5903</title></circle>
+<circle cx="416.0" cy="483.7" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>Token IS B=512 K=500: 0.4111</title></circle>
+<circle cx="746.0" cy="523.4" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>Token IS B=512 K=1000: 0.2219</title></circle>
+<path class="plot-line" d="M86.0,413.3 L152.0,424.4 L251.0,446.4 L416.0,484.4 L746.0,524.0" stroke="#6b7280" stroke-width="2.7" stroke-opacity="0.78"/>
+<circle cx="86.0" cy="413.3" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>Token IS B=1024 K=0: 0.7463</title></circle>
+<circle cx="152.0" cy="424.4" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>Token IS B=1024 K=100: 0.6931</title></circle>
+<circle cx="251.0" cy="446.4" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>Token IS B=1024 K=250: 0.5886</title></circle>
+<circle cx="416.0" cy="484.4" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>Token IS B=1024 K=500: 0.4077</title></circle>
+<circle cx="746.0" cy="524.0" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>Token IS B=1024 K=1000: 0.2190</title></circle>
+<path class="plot-line" d="M86.0,412.5 L152.0,423.6 L251.0,445.1 L416.0,483.3 L746.0,523.5" stroke="#6b7280" stroke-width="2.95" stroke-opacity="0.89"/>
+<circle cx="86.0" cy="412.5" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>Token IS B=2048 K=0: 0.7499</title></circle>
+<circle cx="152.0" cy="423.6" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>Token IS B=2048 K=100: 0.6973</title></circle>
+<circle cx="251.0" cy="445.1" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>Token IS B=2048 K=250: 0.5947</title></circle>
+<circle cx="416.0" cy="483.3" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>Token IS B=2048 K=500: 0.4126</title></circle>
+<circle cx="746.0" cy="523.5" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>Token IS B=2048 K=1000: 0.2216</title></circle>
+<path class="plot-line" d="M86.0,412.2 L152.0,423.0 L251.0,444.7 L416.0,482.8 L746.0,523.2" stroke="#6b7280" stroke-width="3.2" stroke-opacity="1.0"/>
+<circle cx="86.0" cy="412.2" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>Token IS B=4096 K=0: 0.7514</title></circle>
+<circle cx="152.0" cy="423.0" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>Token IS B=4096 K=100: 0.6998</title></circle>
+<circle cx="251.0" cy="444.7" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>Token IS B=4096 K=250: 0.5968</title></circle>
+<circle cx="416.0" cy="482.8" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>Token IS B=4096 K=500: 0.4150</title></circle>
+<circle cx="746.0" cy="523.2" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>Token IS B=4096 K=1000: 0.2230</title></circle>
+<text class="panel-title" x="86" y="606" fill="#6b7280">GeoMean IS</text>
+<rect x="86" y="624" width="660" height="210" fill="#fff"/>
+<line class="grid" x1="86.0" y1="624" x2="86.0" y2="834"/>
+<text class="tick" x="86.0" y="857" text-anchor="middle">0</text>
+<line class="grid" x1="152.0" y1="624" x2="152.0" y2="834"/>
+<text class="tick" x="152.0" y="857" text-anchor="middle">100</text>
+<line class="grid" x1="251.0" y1="624" x2="251.0" y2="834"/>
+<text class="tick" x="251.0" y="857" text-anchor="middle">250</text>
+<line class="grid" x1="416.0" y1="624" x2="416.0" y2="834"/>
+<text class="tick" x="416.0" y="857" text-anchor="middle">500</text>
+<line class="grid" x1="746.0" y1="624" x2="746.0" y2="834"/>
+<text class="tick" x="746.0" y="857" text-anchor="middle">1000</text>
+<line class="grid" x1="86" y1="834.0" x2="746" y2="834.0"/>
+<text class="tick" x="76" y="838.0" text-anchor="end">0</text>
+<line class="grid" x1="86" y1="781.5" x2="746" y2="781.5"/>
+<text class="tick" x="76" y="785.5" text-anchor="end">0.25</text>
+<line class="grid" x1="86" y1="729.0" x2="746" y2="729.0"/>
+<text class="tick" x="76" y="733.0" text-anchor="end">0.5</text>
+<line class="grid" x1="86" y1="676.5" x2="746" y2="676.5"/>
+<text class="tick" x="76" y="680.5" text-anchor="end">0.75</text>
+<line class="grid" x1="86" y1="624.0" x2="746" y2="624.0"/>
+<text class="tick" x="76" y="628.0" text-anchor="end">1</text>
+<line class="axis-line" x1="86" y1="834" x2="746" y2="834"/>
+<line class="axis-line" x1="86" y1="624" x2="86" y2="834"/>
+<path class="plot-line" d="M86.0,698.0 L152.0,714.3 L251.0,756.0 L416.0,778.8 L746.0,803.9" stroke="#6b7280" stroke-width="1.35" stroke-opacity="0.2" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="698.0" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>GeoMean IS B=8 K=0: 0.6475</title></circle>
+<circle cx="152.0" cy="714.3" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>GeoMean IS B=8 K=100: 0.5698</title></circle>
+<circle cx="251.0" cy="756.0" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>GeoMean IS B=8 K=250: 0.3713</title></circle>
+<circle cx="416.0" cy="778.8" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>GeoMean IS B=8 K=500: 0.2627</title></circle>
+<circle cx="746.0" cy="803.9" r="2.8" fill="#6b7280" fill-opacity="0.2"><title>GeoMean IS B=8 K=1000: 0.1432</title></circle>
+<path class="plot-line" d="M86.0,692.9 L152.0,713.4 L251.0,738.3 L416.0,777.0 L746.0,801.7" stroke="#6b7280" stroke-width="1.45" stroke-opacity="0.27" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="692.9" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>GeoMean IS B=16 K=0: 0.6720</title></circle>
+<circle cx="152.0" cy="713.4" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>GeoMean IS B=16 K=100: 0.5744</title></circle>
+<circle cx="251.0" cy="738.3" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>GeoMean IS B=16 K=250: 0.4558</title></circle>
+<circle cx="416.0" cy="777.0" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>GeoMean IS B=16 K=500: 0.2716</title></circle>
+<circle cx="746.0" cy="801.7" r="2.8" fill="#6b7280" fill-opacity="0.27"><title>GeoMean IS B=16 K=1000: 0.1539</title></circle>
+<path class="plot-line" d="M86.0,684.3 L152.0,703.5 L251.0,733.2 L416.0,771.1 L746.0,799.8" stroke="#6b7280" stroke-width="1.6" stroke-opacity="0.34" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="684.3" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>GeoMean IS B=32 K=0: 0.7128</title></circle>
+<circle cx="152.0" cy="703.5" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>GeoMean IS B=32 K=100: 0.6214</title></circle>
+<circle cx="251.0" cy="733.2" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>GeoMean IS B=32 K=250: 0.4800</title></circle>
+<circle cx="416.0" cy="771.1" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>GeoMean IS B=32 K=500: 0.2994</title></circle>
+<circle cx="746.0" cy="799.8" r="2.8" fill="#6b7280" fill-opacity="0.34"><title>GeoMean IS B=32 K=1000: 0.1626</title></circle>
+<path class="plot-line" d="M86.0,681.7 L152.0,703.6 L251.0,733.3 L416.0,769.0 L746.0,798.7" stroke="#6b7280" stroke-width="1.8" stroke-opacity="0.42" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="681.7" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>GeoMean IS B=64 K=0: 0.7251</title></circle>
+<circle cx="152.0" cy="703.6" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>GeoMean IS B=64 K=100: 0.6211</title></circle>
+<circle cx="251.0" cy="733.3" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>GeoMean IS B=64 K=250: 0.4797</title></circle>
+<circle cx="416.0" cy="769.0" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>GeoMean IS B=64 K=500: 0.3096</title></circle>
+<circle cx="746.0" cy="798.7" r="2.8" fill="#6b7280" fill-opacity="0.42"><title>GeoMean IS B=64 K=1000: 0.1679</title></circle>
+<path class="plot-line" d="M86.0,680.5 L152.0,699.7 L251.0,730.6 L416.0,767.9 L746.0,798.1" stroke="#6b7280" stroke-width="2.0" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="680.5" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>GeoMean IS B=128 K=0: 0.7309</title></circle>
+<circle cx="152.0" cy="699.7" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>GeoMean IS B=128 K=100: 0.6396</title></circle>
+<circle cx="251.0" cy="730.6" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>GeoMean IS B=128 K=250: 0.4922</title></circle>
+<circle cx="416.0" cy="767.9" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>GeoMean IS B=128 K=500: 0.3147</title></circle>
+<circle cx="746.0" cy="798.1" r="2.8" fill="#6b7280" fill-opacity="0.5"><title>GeoMean IS B=128 K=1000: 0.1711</title></circle>
+<path class="plot-line" d="M86.0,678.2 L152.0,697.6 L251.0,728.3 L416.0,765.3 L746.0,796.7" stroke="#6b7280" stroke-width="2.2" stroke-opacity="0.59" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="678.2" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>GeoMean IS B=256 K=0: 0.7418</title></circle>
+<circle cx="152.0" cy="697.6" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>GeoMean IS B=256 K=100: 0.6496</title></circle>
+<circle cx="251.0" cy="728.3" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>GeoMean IS B=256 K=250: 0.5033</title></circle>
+<circle cx="416.0" cy="765.3" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>GeoMean IS B=256 K=500: 0.3273</title></circle>
+<circle cx="746.0" cy="796.7" r="2.8" fill="#6b7280" fill-opacity="0.59"><title>GeoMean IS B=256 K=1000: 0.1775</title></circle>
+<path class="plot-line" d="M86.0,677.5 L152.0,696.6 L251.0,726.7 L416.0,764.5 L746.0,796.2" stroke="#6b7280" stroke-width="2.45" stroke-opacity="0.68" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="677.5" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>GeoMean IS B=512 K=0: 0.7452</title></circle>
+<circle cx="152.0" cy="696.6" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>GeoMean IS B=512 K=100: 0.6541</title></circle>
+<circle cx="251.0" cy="726.7" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>GeoMean IS B=512 K=250: 0.5110</title></circle>
+<circle cx="416.0" cy="764.5" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>GeoMean IS B=512 K=500: 0.3312</title></circle>
+<circle cx="746.0" cy="796.2" r="2.8" fill="#6b7280" fill-opacity="0.68"><title>GeoMean IS B=512 K=1000: 0.1798</title></circle>
+<path class="plot-line" d="M86.0,677.3 L152.0,696.7 L251.0,727.1 L416.0,765.0 L746.0,796.7" stroke="#6b7280" stroke-width="2.7" stroke-opacity="0.78" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="677.3" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>GeoMean IS B=1024 K=0: 0.7463</title></circle>
+<circle cx="152.0" cy="696.7" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>GeoMean IS B=1024 K=100: 0.6537</title></circle>
+<circle cx="251.0" cy="727.1" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>GeoMean IS B=1024 K=250: 0.5091</title></circle>
+<circle cx="416.0" cy="765.0" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>GeoMean IS B=1024 K=500: 0.3287</title></circle>
+<circle cx="746.0" cy="796.7" r="2.8" fill="#6b7280" fill-opacity="0.78"><title>GeoMean IS B=1024 K=1000: 0.1777</title></circle>
+<path class="plot-line" d="M86.0,676.5 L152.0,695.8 L251.0,726.0 L416.0,764.2 L746.0,796.3" stroke="#6b7280" stroke-width="2.95" stroke-opacity="0.89" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="676.5" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>GeoMean IS B=2048 K=0: 0.7499</title></circle>
+<circle cx="152.0" cy="695.8" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>GeoMean IS B=2048 K=100: 0.6582</title></circle>
+<circle cx="251.0" cy="726.0" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>GeoMean IS B=2048 K=250: 0.5142</title></circle>
+<circle cx="416.0" cy="764.2" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>GeoMean IS B=2048 K=500: 0.3322</title></circle>
+<circle cx="746.0" cy="796.3" r="2.8" fill="#6b7280" fill-opacity="0.89"><title>GeoMean IS B=2048 K=1000: 0.1793</title></circle>
+<path class="plot-line" d="M86.0,676.2 L152.0,695.2 L251.0,725.6 L416.0,763.9 L746.0,796.1" stroke="#6b7280" stroke-width="3.2" stroke-opacity="1.0" stroke-dasharray="6 5"/>
+<circle cx="86.0" cy="676.2" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>GeoMean IS B=4096 K=0: 0.7514</title></circle>
+<circle cx="152.0" cy="695.2" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>GeoMean IS B=4096 K=100: 0.6608</title></circle>
+<circle cx="251.0" cy="725.6" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>GeoMean IS B=4096 K=250: 0.5162</title></circle>
+<circle cx="416.0" cy="763.9" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>GeoMean IS B=4096 K=500: 0.3340</title></circle>
+<circle cx="746.0" cy="796.1" r="2.8" fill="#6b7280" fill-opacity="1.0"><title>GeoMean IS B=4096 K=1000: 0.1803</title></circle>
+<text class="axis" x="416.0" y="892" text-anchor="middle">Policy lag K</text>
+<text class="axis-y" transform="translate(26,465.0) rotate(-90)" text-anchor="middle">Success Probability (Horizon = 1024)</text>
+<text class="legend-title" x="782" y="110">Batch size</text>
+<line x1="782" y1="138" x2="816" y2="138" stroke="#111" stroke-width="1.35" stroke-opacity="0.2" stroke-linecap="round"/>
+<text class="legend" x="828" y="142">B=8</text>
+<line x1="782" y1="164" x2="816" y2="164" stroke="#111" stroke-width="1.45" stroke-opacity="0.27" stroke-linecap="round"/>
+<text class="legend" x="828" y="168">B=16</text>
+<line x1="782" y1="190" x2="816" y2="190" stroke="#111" stroke-width="1.6" stroke-opacity="0.34" stroke-linecap="round"/>
+<text class="legend" x="828" y="194">B=32</text>
+<line x1="782" y1="216" x2="816" y2="216" stroke="#111" stroke-width="1.8" stroke-opacity="0.42" stroke-linecap="round"/>
+<text class="legend" x="828" y="220">B=64</text>
+<line x1="782" y1="242" x2="816" y2="242" stroke="#111" stroke-width="2.0" stroke-opacity="0.5" stroke-linecap="round"/>
+<text class="legend" x="828" y="246">B=128</text>
+<line x1="782" y1="268" x2="816" y2="268" stroke="#111" stroke-width="2.2" stroke-opacity="0.59" stroke-linecap="round"/>
+<text class="legend" x="828" y="272">B=256</text>
+<line x1="782" y1="294" x2="816" y2="294" stroke="#111" stroke-width="2.45" stroke-opacity="0.68" stroke-linecap="round"/>
+<text class="legend" x="828" y="298">B=512</text>
+<line x1="782" y1="320" x2="816" y2="320" stroke="#111" stroke-width="2.7" stroke-opacity="0.78" stroke-linecap="round"/>
+<text class="legend" x="828" y="324">B=1024</text>
+<line x1="782" y1="346" x2="816" y2="346" stroke="#111" stroke-width="2.95" stroke-opacity="0.89" stroke-linecap="round"/>
+<text class="legend" x="828" y="350">B=2048</text>
+<line x1="782" y1="372" x2="816" y2="372" stroke="#111" stroke-width="3.2" stroke-opacity="1.0" stroke-linecap="round"/>
+<text class="legend" x="828" y="376">B=4096</text>
+</svg>

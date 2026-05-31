@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" role="img" aria-labelledby="title desc">
+<title id="title">Async RL Time per Step by Context and Policy Lag</title>
+<desc id="desc">Line chart comparing time per step for policy lag K=0, K=4, and K infinity as average response length grows.</desc>
+<style>
+  svg { background: #fff; color: #111; font-family: 'Source Sans 3', 'Source Sans Pro', Arial, sans-serif; }
+  .title { font-size: 24px; font-weight: 650; fill: #111; }
+  .subtitle, .tick, .legend-note { fill: #555; }
+  .axis { fill: #111; font-weight: 600; }
+  .subtitle { font-size: 13px; }
+  .axis { font-size: 13px; }
+  .tick { font-size: 11px; }
+  .grid { stroke: #e8edf5; stroke-width: 1; }
+  .axis-line { stroke: #111; stroke-width: 1; }
+  .plot-line { fill: none; stroke-width: 2.7; stroke-linejoin: round; stroke-linecap: round; }
+  .plot-line.dashed { stroke-dasharray: 7 7; }
+  .point { opacity: 1; }
+  .direct-label { font-size: 12.5px; font-weight: 650; }
+  .legend-note { font-size: 12px; }
+  .callout { fill: #2f3b4a; font-size: 12.5px; font-weight: 600; }
+  .callout-soft { fill: #667085; font-size: 11.5px; }
+</style>
+<rect x="0.5" y="0.5" width="919" height="559" fill="#fff" stroke="#ececec"/>
+<text class="title" x="34" y="42">Async RL Time per Step by Context and Policy Lag</text>
+<rect x="82" y="88" width="590" height="380" fill="#ffffff"/>
+<line class="grid" x1="82.0" y1="88" x2="82.0" y2="468"/>
+<text class="tick" x="82.0" y="491" text-anchor="middle">0</text>
+<line class="grid" x1="180.3" y1="88" x2="180.3" y2="468"/>
+<text class="tick" x="180.3" y="491" text-anchor="middle">4k</text>
+<line class="grid" x1="278.7" y1="88" x2="278.7" y2="468"/>
+<text class="tick" x="278.7" y="491" text-anchor="middle">8k</text>
+<line class="grid" x1="475.3" y1="88" x2="475.3" y2="468"/>
+<text class="tick" x="475.3" y="491" text-anchor="middle">16k</text>
+<line class="grid" x1="672.0" y1="88" x2="672.0" y2="468"/>
+<text class="tick" x="672.0" y="491" text-anchor="middle">24k</text>
+<line class="grid" x1="82" y1="468.0" x2="672" y2="468.0"/>
+<text class="tick" x="72" y="472.0" text-anchor="end">0</text>
+<line class="grid" x1="82" y1="377.5" x2="672" y2="377.5"/>
+<text class="tick" x="72" y="381.5" text-anchor="end">500</text>
+<line class="grid" x1="82" y1="287.0" x2="672" y2="287.0"/>
+<text class="tick" x="72" y="291.0" text-anchor="end">1000</text>
+<line class="grid" x1="82" y1="196.6" x2="672" y2="196.6"/>
+<text class="tick" x="72" y="200.6" text-anchor="end">1500</text>
+<line class="grid" x1="82" y1="106.1" x2="672" y2="106.1"/>
+<text class="tick" x="72" y="110.1" text-anchor="end">2000</text>
+<line class="axis-line" x1="82" y1="468" x2="672" y2="468"/>
+<line class="axis-line" x1="82" y1="88" x2="82" y2="468"/>
+<text class="axis" x="377.0" y="528" text-anchor="middle">Average response length (tokens)</text>
+<text class="axis" transform="translate(24,278.0) rotate(-90)" text-anchor="middle">Time per Step (s) ↓</text>
+<path class="plot-line animated" d="M133.2,444.8 L181.2,431.5 L272.9,372.6 L447.5,253.3 L618.5,113.4" stroke="#111111" style="--path-length:602; animation-delay:0.00s"/>
+<circle class="point animated" cx="133.2" cy="444.8" r="4.8" fill="#111111"><title>Synchronous / Rollout-Bound, 2048 cap: 128.2s, ok</title></circle>
+<circle class="point animated" cx="181.2" cy="431.5" r="4.8" fill="#111111"><title>Synchronous / Rollout-Bound, 4096 cap: 201.7s, ok</title></circle>
+<circle class="point animated" cx="272.9" cy="372.6" r="4.8" fill="#111111"><title>Synchronous / Rollout-Bound, 8192 cap: 527.3s, ok</title></circle>
+<circle class="point animated" cx="447.5" cy="253.3" r="4.8" fill="#111111"><title>Synchronous / Rollout-Bound, 16384 cap: 1186.5s, ok</title></circle>
+<circle class="point animated" cx="618.5" cy="113.4" r="4.8" fill="#111111"><title>Synchronous / Rollout-Bound, 24576 cap: 1959.5s, ok</title></circle>
+<path class="plot-line animated" d="M133.3,455.5 L180.9,440.7 L274.7,425.6 L450.1,345.6 L610.2,244.8" stroke="#598be7" style="--path-length:537; animation-delay:0.08s"/>
+<circle class="point animated" cx="133.3" cy="455.5" r="4.8" fill="#598be7"><title>Policy Lag K=4, 2048 cap: 68.8s, ok</title></circle>
+<circle class="point animated" cx="180.9" cy="440.7" r="4.8" fill="#598be7"><title>Policy Lag K=4, 4096 cap: 150.9s, ok</title></circle>
+<circle class="point animated" cx="274.7" cy="425.6" r="4.8" fill="#598be7"><title>Policy Lag K=4, 8192 cap: 234.5s, ok</title></circle>
+<circle class="point animated" cx="450.1" cy="345.6" r="4.8" fill="#598be7"><title>Policy Lag K=4, 16384 cap: 676.7s, ok</title></circle>
+<circle class="point animated" cx="610.2" cy="244.8" r="4.8" fill="#598be7"><title>Policy Lag K=4, 24576 cap: 1233.3s, ok</title></circle>
+<path class="plot-line dashed" d="M133.3,455.7 L180.9,452.0 L274.7,442.4 L450.1,418.4 L610.2,363.5" stroke="#7a6870" style="--path-length:499; animation-delay:0.16s"/>
+<g class="point animated" stroke="#7a6870" stroke-width="2" stroke-linecap="round"><title>Policy Lag K=∞ (Training-Bound), 2048 cap: 68.2s, ok</title><line x1="128.1" y1="450.5" x2="138.5" y2="460.9"/><line x1="128.1" y1="460.9" x2="138.5" y2="450.5"/></g>
+<g class="point animated" stroke="#7a6870" stroke-width="2" stroke-linecap="round"><title>Policy Lag K=∞ (Training-Bound), 4096 cap: 88.2s, ok</title><line x1="175.7" y1="446.8" x2="186.1" y2="457.2"/><line x1="175.7" y1="457.2" x2="186.1" y2="446.8"/></g>
+<g class="point animated" stroke="#7a6870" stroke-width="2" stroke-linecap="round"><title>Policy Lag K=∞ (Training-Bound), 8192 cap: 141.2s, ok</title><line x1="269.5" y1="437.2" x2="279.9" y2="447.6"/><line x1="269.5" y1="447.6" x2="279.9" y2="437.2"/></g>
+<g class="point animated" stroke="#7a6870" stroke-width="2" stroke-linecap="round"><title>Policy Lag K=∞ (Training-Bound), 16384 cap: 274.4s, ok</title><line x1="444.9" y1="413.2" x2="455.3" y2="423.6"/><line x1="444.9" y1="423.6" x2="455.3" y2="413.2"/></g>
+<g class="point animated" stroke="#7a6870" stroke-width="2" stroke-linecap="round"><title>Policy Lag K=∞ (Training-Bound), 24576 cap: 577.2s, ok</title><line x1="605.0" y1="358.3" x2="615.4" y2="368.7"/><line x1="605.0" y1="368.7" x2="615.4" y2="358.3"/></g>
+<text class="direct-label" x="628" y="112" fill="#111111">Synchronous / Rollout-Bound</text>
+<text class="direct-label" x="618" y="256" fill="#598be7">Policy Lag K=4</text>
+<text class="direct-label" x="625" y="376" fill="#7a6870">Policy Lag K=∞ (Training-Bound)</text>
+</svg>
