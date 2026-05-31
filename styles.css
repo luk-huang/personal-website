@@ -241,14 +241,6 @@ h1 {
   color: var(--muted);
 }
 
-.links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 7px;
-  margin-top: 12px;
-}
-
 .photo-wrap {
   display: flex;
   justify-content: center;
@@ -311,6 +303,50 @@ h1 {
 
 .entry-links {
   margin-bottom: 0;
+}
+
+.social-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px 32px;
+  padding: 42px 20px 0;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.social-link:hover {
+  color: var(--link);
+}
+
+.social-link svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0;
+}
+
+.social-link svg path:not(:first-child) {
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.social-link[href^="mailto"] svg,
+.social-link[href*="scholar.google"] svg,
+.social-link[href*="linkedin"] svg {
+  fill: none;
+  stroke-width: 1.8;
 }
 
 .two-level article {
@@ -830,6 +866,15 @@ h1 {
   .two-level p {
     margin-left: 10px;
     margin-right: 10px;
+  }
+
+  .social-footer {
+    gap: 16px 24px;
+    padding-top: 34px;
+  }
+
+  .social-link {
+    font-size: 18px;
   }
 
   .article-header h1 {

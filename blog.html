@@ -6,7 +6,7 @@
     <meta name="description" content="Blog posts by Luke J. Huang.">
     <title>Blog - Luke J. Huang</title>
     <script src="theme.js?v=theme-toggle-2"></script>
-    <link rel="stylesheet" href="styles.css?v=nav-home">
+    <link rel="stylesheet" href="styles.css?v=toc-figure-2">
   </head>
   <body>
     <header class="site-nav">
@@ -42,11 +42,11 @@
           <h3><a href="blog/is-anybody-doing-async-rl-correctly.html">Is Anybody Doing Async RL Correctly?</a></h3>
           <p class="entry-meta">May 2026</p>
           <p>
-            Async RL can unlock much higher training throughput, but stale
-            trajectories turn the update into a fragile off-policy estimator.
-            This post explains why clipping and masking only partially help,
-            why effective sample size is an early collapse signal, and how
-            variance-controlled updates stabilize high-lag training.
+            Large-scale post-training systems are moving to async RL because it
+            can deliver 2-3x faster training, but stale trajectories turn the
+            update into a fragile off-policy estimator. This post explains why
+            masking and clipping only partially help, and why variance control
+            matters at high policy lag.
           </p>
           <p class="entry-links">
             <a href="blog/is-anybody-doing-async-rl-correctly.html">read</a>
