@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A blog post by Luke J. Huang surveying frontier asynchronous RL systems, policy lag, and stability methods.">
-    <title>Is Anybody Doing Async RL Correctly? — Luke J. Huang</title>
+    <meta name="description" content="A blog post by Luke J. Huang on whether frontier asynchronous RL is solved, covering policy lag, stability methods, open questions, and appendix notes.">
+    <title>Is Frontier Asynchronous RL Solved? — Luke J. Huang</title>
     <script src="../theme.js?v=theme-toggle-2"></script>
     <link rel="stylesheet" href="../styles.css?v=async-links-2">
     <script>
@@ -32,7 +32,7 @@
         <summary>Blog</summary>
         <div class="dropdown-panel">
           <a href="../blog.html">All posts</a>
-          <a href="is-anybody-doing-async-rl-correctly.html">Is Anybody Doing Async RL Correctly?</a>
+          <a href="is-frontier-asynchronous-rl-solved.html">Is Frontier Asynchronous RL Solved?</a>
         </div>
       </details>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
@@ -45,19 +45,15 @@
 
     <main class="page article-page">
       <header class="article-header">
-        <h1>Is Anybody Doing Async RL Correctly?</h1>
-        <p class="article-meta">Luke J. Huang &middot; May 2026</p>
-        <p class="article-actions">
-          <a href="https://arxiv.org/abs/2602.17616">Paper</a>
-          <span aria-hidden="true">|</span>
-          <a href="https://github.com/mit-han-lab/vcpo/">Code</a>
-        </p>
+        <h1>Is Frontier Asynchronous RL Solved?</h1>
+        <p class="article-meta">Luke J. Huang &middot; May 31, 2026</p>
       </header>
 
       <article class="article-content">
         <details class="article-toc" open>
           <summary>Table of Contents</summary>
           <nav aria-label="Table of contents">
+            <a href="#tldr">TL;DR</a>
             <a href="#what-is-async-rl">What is Async RL</a>
             <a href="#staleness-problem">The Staleness Problem</a>
             <a href="#async-rl-stability">Stabilizing Async RL</a>
@@ -96,6 +92,39 @@
         </p>
 
         <section>
+          <h2 id="tldr">TL;DR</h2>
+          <ul>
+            <li>
+              Async RL decouples rollout and training, giving 2-3x higher
+              throughput, but stale trajectories create off-policy instability.
+            </li>
+            <li>
+              Policy-lag controls improve stability at the cost of limiting
+              speedups, especially for long-horizon tasks.
+            </li>
+            <li>
+              Nearly all frontier open-weight labs use async RL, but each uses
+              its own fixes; none are robust at high policy lag.
+            </li>
+            <li>
+              There are two separate problems: policy lag itself, which is
+              algorithmic, and numerical train-inference mismatch, which is a
+              systems problem.
+            </li>
+            <li>
+              Sequence-level importance sampling is the estimator that scales
+              with compute, while token-level estimators become structurally
+              inconsistent at high policy lag.
+            </li>
+            <li>
+              The frontier is still messy: the low-bias compute scaling
+              hypothesis, collapse diagnostics, and practical variance control
+              remain open questions.
+            </li>
+          </ul>
+        </section>
+
+        <section>
           <h2 id="what-is-async-rl">What is Async RL and Why Use It?</h2>
           <p>
             Reinforcement learning has a big systems problem in the age of
@@ -114,7 +143,7 @@
           </p>
 
           <figure class="article-figure wide">
-            <img src="../figures/async-rl/figure-01-p2.png" alt="Synchronous RL compared with decoupled asynchronous RL.">
+            <img src="../assets/blog/async-rl/figures/1sync-vs-async-rl.png" alt="Synchronous RL compared with decoupled asynchronous RL.">
             <figcaption>
               Left: in synchronous RL, trajectory sampling and policy updates
               are tightly coupled in one loop. Right: in asynchronous RL,
@@ -125,16 +154,26 @@
 
           <p>
             This decoupling is why many practical RL systems have moved to async
-            pipelines, and why recent open model releases including
-            <strong>GLM-5, Ring-1T, Qwen3.5, and Kimi K2.5</strong> already
-            adopt asynchronous RL at scale. The same trend is reflected in
+            pipelines, and why nearly every recent open-weight release already
+            adopts asynchronous RL at scale. The same trend is reflected in
             open-source infrastructure such as
-            <strong>AReaL, LlamaRL, PipelineRL,</strong> and
-            <strong>Slime</strong>.
+            <a href="https://github.com/inclusionAI/AReaL">AReaL</a>,
+            <a href="https://github.com/facebookresearch/llama-rl">LlamaRL</a>,
+            <a href="https://arxiv.org/abs/2509.19128">PipelineRL</a>,
+            <a href="https://github.com/NovaSky-AI/SkyRL">SkyRL</a>,
+            <a href="https://github.com/PrimeIntellect-ai/prime-rl">prime-rl</a>,
+            <a href="https://github.com/verl-project/verl">VeRL</a>,
+            <a href="https://github.com/meta-pytorch/torchforge">TorchForge</a>,
+            <a href="https://github.com/pytorch/torchtitan">TorchTitan</a>,
+            <a href="https://github.com/meta-pytorch/monarch">Monarch</a>,
+            and <a href="https://github.com/THUDM/slime">Slime</a>. On the lab
+            side, GLM-5 uses Slime, while Minimax built its agent-native
+            <a href="https://www.minimax.io/news/minimax-m25">Forge</a>
+            system around the same asynchronous pattern.
           </p>
 
           <figure class="article-figure wide">
-            <img src="../figures/async-rl/figure-02-p2.png" alt="Conventional RL compared with PipelineRL-style asynchronous RL.">
+            <img src="../assets/blog/async-rl/figures/2pipeline-rl.png" alt="Conventional RL compared with PipelineRL-style asynchronous RL.">
             <figcaption>
               a) Conventional RL alternates between using all the GPUs for
               generation and then training. b) Asynchronous RL runs generation
@@ -270,13 +309,14 @@
           </p>
 
           <figure class="article-figure wide">
-            <img src="../figures/async-rl/llama-qwen-accuracy-side-by-side.png" alt="MATH-500 accuracy collapse at high policy lag for Llama and Qwen.">
+            <img src="../assets/blog/async-rl/figures/3.png" alt="MATH-500 accuracy collapse at high policy lag for Llama and Qwen.">
             <figcaption>
               Llama 3.1 8B Instruct was trained on the Orz Math dataset,
-              following Perplexity's math-reasoning RL setup, while Qwen2.5-7B
-              Base was trained on the MATH-500 train split. Both runs use the
-              same batch size and rollout group size and are evaluated on
-              MATH-500.
+              following
+              <a href="https://www.perplexity.ai/hub/blog/rl-training-for-math-reasoning">Perplexity's math-reasoning RL setup</a>,
+              while Qwen2.5-7B Base was trained on the MATH-500 train split.
+              Both runs use the same batch size and rollout group size and are
+              evaluated on MATH-500.
             </figcaption>
           </figure>
 
@@ -288,6 +328,14 @@
             the rollout and training engines that appears heavily at
             frontier-scale training.
           </p>
+          <blockquote class="callout">
+            <p>
+              Off-policy bias from policy lag pushes IS ratios into extremes,
+              making gradient estimates noisy. This is the algorithmic problem.
+              Numerical mismatch between the rollout and training engines is
+              amplified at frontier scale. This is the systems problem.
+            </p>
+          </blockquote>
 
           <span id="reshaping-is-weights"></span>
           <h3 id="algorithmic-controls">Algorithmic Controls: Taming the IS Ratios</h3>
@@ -391,11 +439,22 @@
           <p>
             The variance of the sequence-level importance ratio can compound
             with the number of tokens, which can be catastrophic in long-horizon
-            RL. To avoid this <em>curse of the horizon</em>, PPO and GRPO use token-level
+            RL. To avoid this
+            <a href="https://arxiv.org/abs/1810.12429"><em>curse of the horizon</em></a>,
+            PPO and GRPO use token-level
             ratios \(\rho(\tau,i)\), while GSPO and GMPO use the geometric mean
             \(\sqrt[|\tau|]{\prod_i \rho(\tau,i)}\), which strikes a balance
             between the token and sequence levels.
           </p>
+          <aside class="sidenote" role="note">
+            <p>
+              <strong>Theory note.</strong> See
+              <a href="is-frontier-asynchronous-rl-solved.html">Part 1</a> and
+              <a href="https://richardli.xyz/post/rl-collapse-part2/">Part 2</a>
+              for more theoretical analysis of sequence-level versus token-level
+              estimators.
+            </p>
+          </aside>
           <p>
             Still, token-level or geometric ratios do not fully prevent outlier
             importance weights. This is where masking and clipping enter.
@@ -419,10 +478,14 @@
           <p>
             This is equivalent to Minimax's CISPO formulation. The
             <a href="https://arxiv.org/abs/2510.13786">ScaleRL</a> paper
-            recently found this kind of truncation effective for async RL. Since
-            these importance weights are detached, the gradient does not vanish
-            when the importance ratio is clipped.
+            recently found this kind of truncation effective for async RL.
           </p>
+          <aside class="sidenote" role="note">
+            <p>
+              Since these importance weights are detached, the gradient does not
+              vanish when the importance ratio is clipped.
+            </p>
+          </aside>
           <p>
             <strong>Masking</strong> is more aggressive: it drops samples entirely based on the
             token, sequence, or geometric-mean ratio.
@@ -561,7 +624,7 @@
           </p>
 
           <figure class="article-figure wide">
-            <img src="../figures/tis_mis_failures_multipanel.png" alt="Token TIS, token MIS, and sequence TIS collapse at high policy lag.">
+            <img src="../assets/blog/async-rl/figures/5-TIS-MIS-collapse.png" alt="Token TIS, token MIS, and sequence TIS collapse at high policy lag.">
             <figcaption>
               \(K=12\) policy-lag Async RL training across token TIS, sequence
               TIS, and token MIS (IcePop) on Qwen2.5-1.5B on GSM8K and Llama
@@ -664,14 +727,27 @@
           </p>
           <p>
             In other words, sequence IS scales well with compute, while token or
-            geometric-mean IS cannot be rescued. As greater compute is poured
-            into RL, token IS is not approximately biased in the async RL
-            regime; it is structurally inconsistent as compute scales.
+            geometric-mean IS cannot be rescued.
           </p>
+          <blockquote class="callout">
+            <p>
+              As greater compute is poured into RL, token IS is not
+              approximately biased in the async RL regime; it is structurally
+              inconsistent as compute scales.
+            </p>
+          </blockquote>
         </section>
 
         <section>
           <h2 id="open-questions">Open Questions at a Messy Frontier</h2>
+          <figure class="article-figure wide">
+            <img src="../assets/blog/async-rl/figures/8.png" alt="Batch size stabilizes sequence TIS at high policy lag.">
+            <figcaption>
+              At higher batch sizes, sequence TIS becomes much more stable under
+              high policy lag and can recover or exceed the synchronous
+              baseline.
+            </figcaption>
+          </figure>
           <p>
             As suggested by our simulation results, as we scale batch size, the
             advantage of sequence IS compounds. At \(B=32\), sequence TIS
@@ -744,7 +820,7 @@
             masking are sensitive to threshold choices and can become unstable.
           </p>
           <figure class="article-figure wide">
-            <img src="../figures/qwen_nonoverlap_ablation_runs.png" alt="Additional Qwen2.5-1.5B sequence MIS and geometric MIS ablations on GSM8K.">
+            <img src="../assets/blog/async-rl/figures/9-appendix.png" alt="Additional Qwen2.5-1.5B sequence MIS and geometric MIS ablations on GSM8K.">
             <figcaption>
               Additional Qwen2.5-1.5B ablations on GSM8K under high policy lag:
               sequence-level MIS and geometric-mean MIS / DeepSeek-style
