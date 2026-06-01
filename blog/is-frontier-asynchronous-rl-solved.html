@@ -54,6 +54,7 @@
           <summary>Table of Contents</summary>
           <nav aria-label="Table of contents">
             <a href="#tldr">TL;DR</a>
+            <a href="#larger-landscape">The Larger Landscape</a>
             <a href="#what-is-async-rl">What is Async RL</a>
             <a href="#staleness-problem">The Staleness Problem</a>
             <a href="#async-rl-stability">Stabilizing Async RL</a>
@@ -95,21 +96,21 @@
           <h2 id="tldr">TL;DR</h2>
           <ul>
             <li>
-              Async RL decouples rollout and training, giving 2-3x higher
-              throughput, but stale trajectories create off-policy instability.
+              async RL decouples rollout and training, giving 2-3x throughput,
+              but the stale trajectories create off-policy instability
             </li>
             <li>
-              Policy-lag controls improve stability at the cost of limiting
+              capping policy lag improve stability at the cost of limiting
               speedups, especially for long-horizon tasks.
             </li>
             <li>
-              Nearly all frontier open-weight labs use async RL, but each uses
-              its own fixes; none are robust at high policy lag.
+              Nearly all frontier open-weight labs use async RL, but with their
+              own fixes for two separate problems: policy lag (algorithmic) and
+              numerical mismatch between engines (systems)
             </li>
             <li>
-              There are two separate problems: policy lag itself, which is
-              algorithmic, and numerical train-inference mismatch, which is a
-              systems problem.
+              a survey of current algorithmic and system fixes and why none are
+              robust at high policy lag
             </li>
             <li>
               Sequence-level importance sampling is the estimator that scales
@@ -125,14 +126,79 @@
         </section>
 
         <section>
+          <h2 id="larger-landscape">The Larger Landscape: Frontier Post-Training</h2>
+          <p>
+            Frontier post-training is no longer a single SFT-to-RL recipe. The
+            emerging pattern is a stack of methods, each solving a different
+            bottleneck:
+          </p>
+          <div class="equation">
+            \[
+            \begin{aligned}
+            &\text{SFT / offline distillation}
+            \to
+            \text{on-policy distillation / self-distillation} \\
+            &\to
+            \text{specialist RL}
+            \to
+            \text{multi-teacher OPD}
+            \to
+            \text{unified model}
+            \end{aligned}
+            \]
+          </div>
+          <p>
+            SFT and offline distillation teach the model what good behavior
+            looks like - fast and stable, but limited to trajectories the model
+            didn't generate itself. On-Policy Distillation goes further by
+            having the model generate its own trajectories, though its ceiling
+            is still set by teacher capability and model family.
+            Self-distillation (
+            <a href="https://arxiv.org/abs/2601.18734">OPSD</a> and
+            <a href="https://arxiv.org/abs/2601.20802">SDPO</a>) removes the
+            external teacher entirely, letting the model supervise itself under
+            richer context: either from a hint, a verified answer, or
+            environment feedback. But in all cases, the ceiling is determined
+            by the data.
+          </p>
+          <p>
+            RL's role remains fundamental: the model searches through its own
+            policy space, improvements compound with training, and the ceiling
+            is set by the verifier rather than any existing data or teacher.
+          </p>
+          <aside class="sidenote" role="note">
+            <p>
+              See
+              <a href="https://x.com/willccbb/status/2050038277454143918">Will Brown's article</a>
+              for a broader comparison of modern post-training methods.
+            </p>
+          </aside>
+          <p>
+            Training multiple RL objectives simultaneously is tricky, which is
+            why <a href="https://arxiv.org/abs/2601.02780">MIMO</a> proposed
+            multi-expert pipelines that train domain specialists independently
+            and consolidate them via
+            <a href="https://arxiv.org/abs/2601.02780">On-Policy Distillation</a>.
+            Later also adopted by DeepSeek V4, this Multi-Teacher On-Policy
+            Distillation (MOPD) allows each domain to reach its own ceiling
+            before the specialists are merged.
+          </p>
+          <p>
+            As long-horizon RL becomes central to frontier post-training, the
+            sampling cost becomes the critical bottleneck. So what systems
+            changes can make RL faster without sacrificing performance?
+          </p>
+        </section>
+
+        <section>
           <h2 id="what-is-async-rl">What is Async RL and Why Use It?</h2>
           <p>
-            Reinforcement learning has a big systems problem in the age of
+            Reinforcement Learning has a big systems problem in the age of
             reasoning: sampling long trajectories is expensive. In standard
             on-policy RL, you must first generate responses with the current
-            model for your prompts, and only then train on those responses. This
-            makes the loop conceptually simple, but it means a significant
-            amount of GPU time can sit idle while waiting for the last few
+            model for your prompts, and only then train on those responses.
+            This makes the loop conceptually simple, but it means a significant
+            amount of GPUs might be idle while waiting for the last few
             trajectories to finish.
           </p>
           <p>
@@ -154,22 +220,29 @@
 
           <p>
             This decoupling is why many practical RL systems have moved to async
-            pipelines, and why nearly every recent open-weight release already
-            adopts asynchronous RL at scale. The same trend is reflected in
-            open-source infrastructure such as
-            <a href="https://github.com/inclusionAI/AReaL">AReaL</a>,
-            <a href="https://github.com/facebookresearch/llama-rl">LlamaRL</a>,
-            <a href="https://arxiv.org/abs/2509.19128">PipelineRL</a>,
-            <a href="https://github.com/NovaSky-AI/SkyRL">SkyRL</a>,
-            <a href="https://github.com/PrimeIntellect-ai/prime-rl">prime-rl</a>,
-            <a href="https://github.com/verl-project/verl">VeRL</a>,
-            <a href="https://github.com/meta-pytorch/torchforge">TorchForge</a>,
-            <a href="https://github.com/pytorch/torchtitan">TorchTitan</a>,
-            <a href="https://github.com/meta-pytorch/monarch">Monarch</a>,
-            and <a href="https://github.com/THUDM/slime">Slime</a>. On the lab
-            side, GLM-5 uses Slime, while Minimax built its agent-native
-            <a href="https://www.minimax.io/news/minimax-m25">Forge</a>
-            system around the same asynchronous pattern.
+            pipelines, and why nearly all major open weight releases already
+            adopt asynchronous RL at scale. Nearly all open-source frameworks
+            implement this pattern. <a href="https://github.com/inclusionAI/AReaL">AReaL</a>
+            and <a href="https://github.com/facebookresearch/llama-rl">LlamaRL</a>
+            are the most widely cited research implementations, and
+            <a href="https://arxiv.org/abs/2509.19128">PipelineRL</a>
+            (ServiceNow) improves on them with in-flight weight syncing.
+            <a href="https://github.com/NovaSky-AI/SkyRL">SkyRL</a>
+            (NovaSky/UC Berkeley) and
+            <a href="https://github.com/PrimeIntellect-ai/prime-rl">prime-rl</a>
+            (Intellect-3) are modular framework good for research, while
+            <a href="https://github.com/verl-project/verl">VeRL</a> (ByteDance)
+            is an easy to use highly-featured system.
+            <a href="https://github.com/meta-pytorch/torchforge">TorchForge</a>
+            (Meta/PyTorch) uses
+            <a href="https://github.com/pytorch/torchtitan">TorchTitan</a> as
+            its production-grade training infra and
+            <a href="https://github.com/meta-pytorch/monarch">Monarch</a> for
+            fault-tolerant scheduling, though development has paused as Meta
+            consolidates into TorchTitan. On the lab side,
+            <a href="https://github.com/THUDM/slime">Slime</a> (Zhipu/GLM-5)
+            and <a href="https://www.minimax.io/news/minimax-m25">Forge</a>
+            (Minimax) are battle-tested production systems.
           </p>
 
           <figure class="article-figure wide">
@@ -189,7 +262,7 @@
           </p>
           <p>
             In principle, we can use <strong>importance sampling to correct this
-            mismatch</strong>. Formally, the off-policy objective uses importance
+            mismatch</strong>. Formally, the off-policy objective use importance
             sampling to reweight each trajectory \(\tau\) by how much more (or
             less) likely the current policy \(\color{green}{\pi_\theta}\) thinks
             it is compared to when it was generated by the inference policy
@@ -218,11 +291,12 @@
         <section>
           <h2 id="staleness-problem">The Staleness Problem</h2>
           <p>
-            A useful way to describe Async RL's inherent policy mismatch is with
+            A useful way to describe Async RL’s inherent policy mismatch is with
             <strong>policy lag</strong> \(K\): the number of optimization steps
-            by which the training policy is ahead of the inference policy. When \(K=0\),
-            training is fully on-policy. As \(K\) grows, trajectories become
-            more stale and the KL divergence between policy and inference
+            by which the training policy is ahead of the inference policy. When
+            \(K=0\), training is fully on-policy. As \(K\) grows, the
+            trajectories becomes more stale and the KL divergence between Policy
+            and Inference
             increases.
           </p>
           <p>
@@ -239,16 +313,17 @@
             gains from async RL.
           </p>
           <p>
-            There is a useful analogy to the regular roofline model for GPU
-            work; see the
-            <a href="https://jax-ml.github.io/scaling-book/roofline">JAX-ML scaling book</a>
-            for a thorough discussion. For a matmul
+            There’s a similar analogy to regular roofline model for GPU work
+            (See
+            <a href="https://jax-ml.github.io/scaling-book/roofline">JAX-ML scaling book, §1</a>
+            for more details). The essence of the model is that for a matmul
             \([B,D]\times[D,F]\), arithmetic intensity scales as \(\approx B\)
-            when \(B \ll D,F\). Below the hardware's peak arithmetic intensity,
-            the operation is <strong>memory-bound</strong>: compute idles waiting for data.
-            Above it, the operation is <strong>compute-bound</strong>: hardware is fully
-            utilized. In other words, there is a critical batch size \(B^*\)
-            below which you are not fully using your hardware.
+            for \(B \ll D, F\). Below the hardware's peak arithmetic intensity,
+            the operation is <strong>memory-bound</strong>: compute idles
+            waiting for data. Above it, you're
+            <strong>compute-bound</strong>: hardware is fully utilized. In other
+            words, there's a critical batch size \(B^*\) below which you aren’t
+            fully utilizing your hardware.
           </p>
           <p>
             Async RL has a similar structure. Define the steady-state policy lag
@@ -277,17 +352,17 @@
           </p>
           <p>
             However, long-horizon tasks, exactly where async RL's throughput
-            advantage matters most, push \(K_\text{steady}\) up. Rollout latency
-            scales with sequence length, so longer sequences mean higher natural
-            policy lag. Look at what happens as sequence length grows:
+            advantage matters most, naturally push \(K_\text{steady}\) up.
+            Rollout latency scales with sequence length, so longer sequences
+            mean higher natural policy lag. Look at what happens as sequence
+            length grows:
           </p>
 
           <figure class="article-figure">
             <img src="../figures/async-rl/async-speedup-staleness.svg?v=direct-labels-4" alt="Async RL time per step as maximum output length grows for different policy lags.">
             <figcaption>
-              Async RL with 4 training GPUs and 4 rollout GPUs using
-              Qwen2.5-7B Base. The \(K=\infty\) line is the update-only async
-              ceiling as context length grows.
+              Async RL with 4 Training GPUs and 4 Rollout GPUs using Qwen
+              2.5-7B Base
             </figcaption>
           </figure>
 
@@ -304,47 +379,45 @@
         <section>
           <h2 id="async-rl-stability">How Do We Stabilize Asynchronous RL?</h2>
           <p>
-            The systems speedups from Async RL do not come for free. As policy
-            lag grows, training can often become unstable and crash.
+            The systems speedups from Async RL don’t come for free. As
+            policy-lag grows, the training can often become unstable and
+            crashes.
           </p>
 
           <figure class="article-figure wide">
             <img src="../assets/blog/async-rl/figures/3.png" alt="MATH-500 accuracy collapse at high policy lag for Llama and Qwen.">
             <figcaption>
-              Llama 3.1 8B Instruct was trained on the Orz Math dataset,
-              following
-              <a href="https://www.perplexity.ai/hub/blog/rl-training-for-math-reasoning">Perplexity's math-reasoning RL setup</a>,
-              while Qwen2.5-7B Base was trained on the MATH-500 train split.
-              Both runs use the same batch size and rollout group size and are
-              evaluated on MATH-500.
+              Llama 3.1 8B Instruct was trained according to
+              <a href="https://www.perplexity.ai/hub/blog/rl-training-for-math-reasoning">Perplexity's math-reasoning RL setup</a>
+              on the Orz Math Dataset, while Qwen 2.5 7B Based was trained on
+              the Math-500 train split. Both were trained with identical batch
+              sizes and rollout group sizes and evaluate on the Math-500
+              benchmark.
             </figcaption>
           </figure>
 
           <p>
             So how do we avoid collapse? For Async RL, there are two separate
-            sources of instability, and they need different fixes. The first is
-            off-policy bias: policy lag pushes IS ratios into extremes, making
-            gradient estimates noisy. The second is a numerical mismatch between
-            the rollout and training engines that appears heavily at
-            frontier-scale training.
+            sources of this instability, and they need different fixes:
           </p>
           <blockquote class="callout">
             <p>
-              Off-policy bias from policy lag pushes IS ratios into extremes,
-              making gradient estimates noisy. This is the algorithmic problem.
-              Numerical mismatch between the rollout and training engines is
-              amplified at frontier scale. This is the systems problem.
+              Off-policy bias from policy-lag pushes push IS ratios into
+              extremes, making gradient estimates noisy. This is an algorithmic
+              problem. Numerical mismatch between the rollout and training
+              engines are amplified at frontier scale training. This is a
+              systems problem.
             </p>
           </blockquote>
 
           <span id="reshaping-is-weights"></span>
           <h3 id="algorithmic-controls">Algorithmic Controls: Taming the IS Ratios</h3>
           <p>
-            To stabilize asynchronous RL at scale, frontier open-weight labs
-            have designed algorithmic controls for importance-sampling ratios,
-            including
+            To stabilize asynchronous RL at scale, the frontier open-weight
+            labs have all designed off-policy algorithmic controls to control
+            importance sampling ratios, used by
             <a href="https://arxiv.org/pdf/2602.15763">GLM-5</a>,
-            <a href="https://arxiv.org/pdf/2510.18855">Ring-1T</a>,
+            <a href="https://arxiv.org/pdf/2510.18855">Ring 1T</a>,
             <a href="https://arxiv.org/pdf/2512.02556">DeepSeek V3.2</a>,
             <a href="https://www.minimax.io/news/minimax-m25">Minimax M2.5</a>,
             <a href="https://arxiv.org/pdf/2512.16144">Intellect-3</a>,
@@ -364,49 +437,65 @@
               <tr>
                 <td><strong>Truncated Importance Sampling (TIS) / CISPO</strong></td>
                 <td>
-                  Clips outlier importance ratios \(r\) into
-                  \([r_\text{low}, r_\text{high}]\), where \(r\) can be a token
-                  ratio, sequence ratio, or geometric-mean sequence ratio.
+                  Clips outlier importance sampling ratios \(r\):
+                  \(r_{\text{TIS}}=
+                  \begin{cases}
+                  r_{\text{low}}, & r < r_{\text{low}} \\
+                  r, & r_{\text{low}} \le r \le r_{\text{high}} \\
+                  r_{\text{high}} , & r > r_{\text{high}}
+                  \end{cases}\)
+                  where \(r=\rho(\tau,i)\) (Token), \(w(\tau)\) (Sequence), or
+                  \(w(\tau)^{\frac{1}{|\tau|}}\) (Geometric)
                 </td>
-                <td>AReaL, <a href="https://arxiv.org/abs/2505.24034">LlamaRL / AIPO</a>, <a href="https://www.minimax.io/news/minimax-m25">Minimax M2.5</a>, <a href="https://poolside.ai/assets/laguna/laguna-m1-xs2-technical-report.pdf">Laguna-M.1</a></td>
+                <td>AReal, <a href="https://arxiv.org/abs/2505.24034">LlamaRL / AIPO</a>, <a href="https://www.minimax.io/news/minimax-m25">Minimax M2.5</a>, <a href="https://poolside.ai/assets/laguna/laguna-m1-xs2-technical-report.pdf">Laguna-M.1</a></td>
                 <td>Yes</td>
               </tr>
               <tr>
                 <td><strong>IcePop / Masked Importance Sampling (MIS)</strong></td>
                 <td>
-                  Set outlier ratios to zero outside the valid window. The
-                  ratio can be token-level, sequence-level, or geometric-mean.
+                  Masks outlier importance sampling ratios \(r\):
+                  \(r_{\text{MIS}}=
+                  \begin{cases}
+                  r, & r_{\text{low}} \le r \le r_{\text{high}} \\
+                  0, & \text{else}
+                  \end{cases}\)
+                  where \(r=\rho(\tau,i)\) (Token), \(w(\tau)\) (Sequence), or
+                  \(w(\tau)^{\frac{1}{|\tau|}}\) (Geometric)
                 </td>
-                <td><a href="https://arxiv.org/pdf/2602.15763">GLM-5</a>, <a href="https://arxiv.org/pdf/2510.18855">Ring-1T</a>, <a href="https://arxiv.org/pdf/2512.16144">Intellect-3</a>, <a href="https://arxiv.org/pdf/2604.12374">Nemotron-3 Super</a></td>
+                <td><a href="https://arxiv.org/pdf/2602.15763">GLM 5</a>, <a href="https://arxiv.org/pdf/2510.18855">Ring 1T</a>, <a href="https://arxiv.org/pdf/2512.16144">Intellect-3</a>, <a href="https://arxiv.org/pdf/2604.12374">Nemotron-3 Super</a></td>
                 <td>Yes</td>
               </tr>
               <tr>
-                <td><strong>DeepSeek Masking</strong></td>
+                <td><strong>Deepseek Masking</strong></td>
                 <td>
-                  Mask negative-advantage trajectories when their average
-                  log-ratio exceeds a threshold.
+                  Masks outlier importance sampling ratios \(r\) with negative
+                  advantages: \(M_{\text{DS}}(\tau)=0\) if \(\hat A(\tau)<0\)
+                  and \(\frac{1}{|\tau|}\sum_t \log
+                  \frac{\pi_{\text{old}}(\tau_t\mid x,\tau_{<t})}{\pi_\theta(\tau_t\mid
+                  x,\tau_{<t})}>\delta\); otherwise
+                  \(M_{\text{DS}}(\tau)=1\)
                 </td>
-                <td><a href="https://arxiv.org/pdf/2512.02556">DeepSeek-V3.2</a></td>
+                <td>Deepseek-V3.2</td>
                 <td>Yes</td>
               </tr>
               <tr>
                 <td><strong>M2PO</strong></td>
                 <td>
-                  Iteratively mask tokens until the average squared log-ratio
-                  is below a threshold.
+                  Iteratively mask tokens until
+                  \(\frac{1}{|\tau|} \sum_i (\log{\rho(\tau,i)})^2 \le t_{\text{M2PO}}\)
                 </td>
-                <td><a href="https://arxiv.org/abs/2510.01161">M2PO</a></td>
+                <td>M2PO</td>
                 <td>Yes</td>
               </tr>
             </tbody>
           </table>
 
           <p>
-            These methods all involve <strong>reshaping the importance-sampling
-            (IS) weights</strong>, <strong>reducing variance at the cost of
-            introducing bias</strong>. So what is wrong
-            with the IS weights as is? We can already see the fundamental issue
-            in the structure of the unbiased off-policy objective in Eq. (1):
+            These methods all involve <strong>reshaping the Importance Sampling
+            (IS) weights,</strong> reducing variance at the cost of introducing
+            bias. So what’s wrong the IS weights as is? Actually, we can already
+            see the fundamental issue in the structure in the unbiased
+            off-policy objective in Eq. (1):
           </p>
           <div class="equation">
             \[
@@ -420,44 +509,39 @@
             \]
           </div>
           <p>
-            This unbiased policy objective uses the <em>sequence-level</em> importance
-            ratio \(w(\tau)\), which can be written as the product of
+            This unbiased policy objective uses the <em>sequence-level</em>
+            importance ratio \(w(\tau) \triangleq \frac{\pi_\theta(\tau|x
+            )}{\mu(\tau |x)}\), which can be written as the product of
             <em>token-level</em> ratios \(\rho(\tau,i)\):
           </p>
           <div class="equation">
             \[
-            w(\tau)\triangleq
-            \frac{\color{green}{\pi_\theta}(\tau\mid x)}{\color{blue}{\mu}(\tau\mid x)}
-            =
-            \prod_{i=1}^{|\tau|}\rho(\tau,i),
-            \qquad
-            \rho(\tau,i)\triangleq
-            \frac{\color{green}{\pi_\theta}(\tau_i\mid x,\tau_{&lt;i})}
-            {\color{blue}{\mu}(\tau_i\mid x,\tau_{&lt;i})}.
+            w(\tau) \triangleq \frac{\pi_\theta(\tau|x )}{\mu(\tau |x)} =
+            \prod_{i=1}^{|\tau|} \underbrace{\frac{\pi_\theta(\tau_i|x,
+            \tau^{&lt;i})}{\mu(\tau_i |x,\tau^{&lt;i})}}_{\triangleq \rho(\tau,i)}
             \]
           </div>
           <p>
-            The variance of the sequence-level importance ratio can compound
-            with the number of tokens, which can be catastrophic in long-horizon
-            RL. To avoid this
-            <a href="https://arxiv.org/abs/1810.12429"><em>curse of the horizon</em></a>,
-            PPO and GRPO use token-level
-            ratios \(\rho(\tau,i)\), while GSPO and GMPO use the geometric mean
-            \(\sqrt[|\tau|]{\prod_i \rho(\tau,i)}\), which strikes a balance
-            between the token and sequence levels.
+            We see that variance of the sequence level importance ratio could
+            potentially compound with the number of tokens, which could be
+            catastrophic in long-horizon RL. To avoid this
+            <a href="https://arxiv.org/abs/1810.12429"><em>Curse Of The Horizon</em></a>,
+            the original PPO/GRPO formulates adopt token-level importance
+            sampling \(\rho(\tau,i)\) while GSPO/GMPO adopt the geometric-mean
+            \(\sqrt[|\tau|]{\prod_{i=1}^{|\tau|} \rho(\tau,i)}\) which strikes a
+            balance between the token and sequence levels.
           </p>
           <aside class="sidenote" role="note">
             <p>
-              <strong>Theory note.</strong> See
-              <a href="is-frontier-asynchronous-rl-solved.html">Part 1</a> and
+              See
+              <a href="https://richardli.xyz/post/rl-collapse-part1/">Part 1</a> and
               <a href="https://richardli.xyz/post/rl-collapse-part2/">Part 2</a>
-              for more theoretical analysis of sequence-level versus token-level
-              estimators.
+              of this blog for more theoretical analysis
             </p>
           </aside>
           <p>
-            Still, token-level or geometric ratios do not fully prevent outlier
-            importance weights. This is where masking and clipping enter.
+            Still, this doesn’t prevent fully prevent outlier importance
+            sampling, which is why current methods adopt masking and clipping.
           </p>
           <p>
             <strong>Clipping</strong> caps how extreme the token or sequence ratio is allowed to
@@ -478,12 +562,12 @@
           <p>
             This is equivalent to Minimax's CISPO formulation. The
             <a href="https://arxiv.org/abs/2510.13786">ScaleRL</a> paper
-            recently found this kind of truncation effective for async RL.
+            recently found was effective for Async RL
           </p>
           <aside class="sidenote" role="note">
             <p>
-              Since these importance weights are detached, the gradient does not
-              vanish when the importance ratio is clipped.
+              since these importance weights are already detached, the gradients
+              does not vanish when the importance ratio is clipped
             </p>
           </aside>
           <p>
@@ -507,14 +591,15 @@
           </p>
           <aside class="sidenote" role="note">
             <p>
-              <strong>Alternative masking methods.</strong>
-              <a href="https://arxiv.org/abs/2510.01161">M2PO</a>
-              proposes to drop tokens until
-              \(\frac{1}{|\tau|}\sum_i(\log\rho(\tau,i))^2\) is below a threshold.
+              There are some alternative methods as well.
+              <a href="https://arxiv.org/abs/2510.01161">M2PO</a> proposes to
+              drop tokens until the \(\frac{1}{|\tau|} \sum_i
+              (\log{\rho(\tau,i)})^2\) is less then some threshold.
               <a href="https://arxiv.org/pdf/2512.02556">DeepSeek V3.2</a> uses
-              a related sequence-level idea: it keeps all non-negative samples,
-              but masks negative trajectories once their average log-ratio
-              becomes too large. See the appendix for additional ablations.
+              a related idea at the sequence level: it keeps all non-negative
+              samples, but masks <strong>negative</strong> trajectories once
+              their average log-ratio becomes too large. See Appendix for their
+              ablations
             </p>
           </aside>
 
@@ -524,60 +609,81 @@
             mismatch. A second, separate class of mismatch comes from the fact
             that the rollout engine and the training engine are fundamentally
             different systems: different parallelism strategies, different
-            kernel implementations, and different MoE routing behavior. These
-            differences amplify the existing distributional train-inference gaps
-            from policy lag.
+            kernel implementations, different MoE routing behavior. This
+            mismatch exists even without policy lag, and amplify distributional
+            gaps caused by policy lag.
           </p>
           <p>
             <strong>MoE routing replay.</strong>
-            <a href="https://arxiv.org/abs/2510.11370">Rollout Routing Replay
-            (R3)</a> observes that identical weights can still cause roughly
-            10% of MoE routing decisions to diverge per forward pass, causing
-            collapse. The fix is to record inference routing masks and replay
-            them during training. <a href="https://arxiv.org/abs/2507.18071">GSPO</a>
-            first mentioned this issue, but targeted the instability from the
-            algorithm side via geometric-mean IS.
+            Rollout Routing Replay
+            (<a href="https://arxiv.org/abs/2510.11370">R3</a>): identical
+            weights still cause ~10% of MoE routing decisions to diverge per
+            forward pass, causing collapse. The fix is recording inference
+            routing masks and replaying during training.
+            <a href="https://arxiv.org/abs/2507.18071">GSPO</a> first
+            mentioned this, but targeted instability from the algorithm side
+            via geometric mean IS.
           </p>
           <p>
-            <strong>Token-in, token-out.</strong>
+            <strong>Token-in Token-out (TITO).</strong> Token In Token Out
+            prevents a fundamental token discrepancy between train and inference
+            because tokenizers have hysteresis. Without it, tokenization
+            discrepancies silently corrupt log-probability computation between
+            rollout and trainer.
+            <a href="https://github.com/horizon-rl/strands-sglang">strands-sglang</a>
+            was the first open-source implementation of TITO for agentic RL
+            training, allow the SGLang inference engine to track complete
+            token trajectories with logprobs for RL training directly.
             <a href="https://www.primeintellect.ai/blog/renderers">Prime
-            Intellect's renderers</a> are a good example of TITO: the inference
-            server handles only tokens, while all templating and masking live in
-            client code. Without this, tokenization discrepancies silently
-            corrupt log-probability computation between rollout and trainer.
+            Intellect's renderers</a> is another example of the same pattern:
+            inference server handles only tokens, all templating and masking
+            lives in client code.
           </p>
           <p>
             <strong>Batch-invariant kernels.</strong>
             <a href="https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/">Thinking
-            Machines</a> points out that batching changes floating-point
-            reduction order, making log-probs nondeterministic across batch
-            sizes. <a href="https://arxiv.org/abs/2511.17826">TBIK</a> extends
-            this fix to tensor-parallel sizes, for example when training runs
-            TP=1 and rollout runs TP&gt;1.
+            Machines</a> showed that batching changes floating-point reduction
+            order, making log-probs nondeterministic across batch sizes. In
+            response to this, they developed batch-invariant kernels which
+            achieve <em>bitwise identical</em> train inference behavior.
+            <a href="https://arxiv.org/abs/2511.17826">TBIK</a> extends this
+            fix to tensor-parallel sizes, for example when training runs TP=1
+            and rollout runs TP&gt;1.
+            <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf">DeepSeek V4</a>
+            achieved batch-invariant kernels in their production-scale
+            post-training infrastructure. For attention, they develop a
+            dual-kernel strategy, a first kernel computes attention for an
+            entire sequence within a single SM ensuring accumulation-order
+            consistency, while a second kernel handles the final partially-filled
+            wave across multiple SMs using distributed shared memory, with both
+            kernels designed to produce bitwise-identical outputs. Second, for
+            matrix multiplication, they replace cuBLAS end-to-end with
+            <a href="https://github.com/deepseek-ai/DeepGEMM">DeepGEMM</a> and
+            abandon split-k, since neither cuBLAS nor split-k can guarantee
+            batch invariance.
           </p>
           <p>
             <strong>FP32 LM head.</strong>
             <a href="https://arxiv.org/abs/2506.13585">Minimax M1</a>
-            identified that bf16 rounding at the LM head distorts IS ratios, so
-            it uses fp32 LM-head computation instead.
-            <a href="https://arxiv.org/abs/2510.13786">ScaleRL</a> confirmed
-            that this dramatically improves asymptotic performance. It is a
-            one-line fix.
+            identified that bf16 rounding at the LM head distorts IS ratios,
+            instead opting for fp32 LM-head computations.
+            <a href="https://arxiv.org/abs/2510.13786">ScaleRL</a> confirmed it
+            dramatically improves asymptotic performance. One-line fix.
           </p>
           <p>
             <strong>FP16.</strong>
             <a href="https://arxiv.org/abs/2510.26788">Qi et al.</a> show that
-            switching the full pipeline to FP16 eliminates train-inference
-            mismatch with only a few lines of code. This seems to be a
-            particular issue on Ampere GPUs, and it is unclear whether it has
-            been validated at frontier RL scale.
+            switching the full pipeline to FP16 reduces train-inference
+            mismatch with only a few lines of code change. This seems to be a
+            particular issue on Ampere GPUs.
           </p>
           <p>
-            <strong>Quantized rollouts.</strong>
-            <a href="https://github.com/yaof20/Flash-RL">FlashRL</a> does
-            INT8/FP8 rollouts with accurate log-probs and no accuracy drop on
-            Qwen2.5-32B when combined with truncated IS. More recently,
-            open-source libraries have also pushed for this, with
+            <strong>Quantized rollouts.</strong> Quantized inference reduces
+            rollout times, and the first research work
+            <a href="https://github.com/yaof20/Flash-RL">FlashRL</a> proposed
+            INT8/FP8 rollouts with accurate log-probs, with no accuracy drop on
+            Qwen2.5-32B when combined by Truncated IS. Recently, open-source
+            libraries have also pushed for this, with
             <a href="https://github.com/THUDM/slime">Slime</a> adding int4
             rollout quantization for long-horizon agentic tasks where
             generation latency dominates.
@@ -587,11 +693,20 @@
             <a href="https://arxiv.org/abs/2509.19128">PipelineRL</a>
             introduces in-flight weight syncs, broadcasting weights after each
             optimizer step without halting generation and keeping policy lag
-            near zero. <a href="https://arxiv.org/abs/2506.10910">Magistral</a>,
-            AReaL, prime-rl, and NeMo-RL all adopt variants of this.
+            near zero. Kimi's MoonCake engine was validated by LMSYS's
+            <a href="https://www.lmsys.org/blog/2026-04-29-p2p-update/">P2P weight update for SGLang</a>,
+            achieves a 7× speedup over NCCL for Kimi K2 (53s → 7.2s) using RDMA
+            P2P transfers via Mooncake TransferEngine. Perplexity's
+            <a href="https://research.perplexity.ai/articles/weight-transfer-for-rl-post-training-in-under-2-seconds">TransferEngine</a>
+            reduces this further using RDMA WRITE with a static transfer
+            schedule and pipelined execution, achieving 1.3 second
+            trillion-parameter weight updates on Kimi K2, achieving zero-copy
+            writes to remote inference GPU memory with no control plane
+            overhead.
             <a href="https://cursor.com/blog/composer-2-5">Composer 2.5</a>
             introduces delta-compression updates, which accelerate cross-cluster
-            weight sync by updating only a portion of weights.
+            weight syncing by only updating a portion of weights especially at
+            the Cross-Cluter level.
           </p>
           <p>
             <strong>KV cache recomputation.</strong> Interestingly, KV-cache
@@ -616,34 +731,43 @@
           <p>
             That is why algorithmic changes that allow stable training despite
             policy lag are fundamental. The masking and clipping methods
-            proposed so far are robust at low policy lag, where async RL gives
-            moderate speedups with stable training. But push policy lag higher
-            and the picture changes. We swept \(K=12\) policy-lag Async RL
-            training across token TIS, sequence TIS, and token MIS (IcePop) on
-            Qwen2.5-1.5B on GSM8K and Llama 3.1 8B Instruct on MATH-500.
+            proposed so far are robust at low policy lag, where there are
+            moderate speedups with stable training.
+          </p>
+          <p>
+            But push policy lag \(K\) higher and the picture changes. We swept
+            \(K=12\) policy-lag Async RL training across token TIS, sequence
+            TIS, and token MIS (IcePop) on Qwen2-1.5B on GSM8k and Llama 3.1 8B
+            Instruct on Math 500.
           </p>
 
           <figure class="article-figure wide">
             <img src="../assets/blog/async-rl/figures/5-TIS-MIS-collapse.png" alt="Token TIS, token MIS, and sequence TIS collapse at high policy lag.">
             <figcaption>
-              \(K=12\) policy-lag Async RL training across token TIS, sequence
-              TIS, and token MIS (IcePop) on Qwen2.5-1.5B on GSM8K and Llama
-              3.1 8B Instruct on MATH-500.
+              The common clipping and masking strategies can delay instability,
+              but all none are robust in this high policy-lag regime
+              (\(k=12\)). Some variants collapse outright, while others show
+              strong sensitivity to threshold choice.
             </figcaption>
           </figure>
 
           <p>
             The common clipping and masking strategies can delay instability,
-            but none are robust in this high policy-lag regime. Some variants
-            crash outright. Others survive longer depending on thresholds,
-            model, and task. Sequence-level TIS holds up better than token-level
-            variants, but even it eventually degrades.
+            but all none are robust in this high policy-lag regime (\(k=12\)).
+            Some variants collapse outright, while others show strong
+            sensitivity to threshold choice.
           </p>
           <p>
-            <strong>Clipping and masking delay the collapse. They do not prevent
-            it.</strong> Every method eventually collapses, and how long a run
-            survives depends heavily on threshold tuning regardless of method.
-            The instability is structural, and the asymmetry between token and
+            The results are consistent across both models and benchmarks. Some
+            methods crash outright. Others survive for longer depending on
+            thresholds, model, and task. Sequence-level TIS holds up better
+            than token-level variants, but even it eventually degrades.
+          </p>
+          <p>
+            Clipping and masking delay the collapse. They don't prevent it.
+            Every method eventually collapses, and how long a run survives
+            depends a lot on threshold tuning regardless of method.. The
+            instability is structural and the asymmetry between token and
             sequence estimators is the first hint at why.
           </p>
         </section>
@@ -656,28 +780,29 @@
             policy lag, has a deeper reason.
           </p>
           <p>
-            The original PPO and GRPO papers proposed token-level IS in the
+            The original PPO and GRPO papers proposed Token-level IS in the
             on-policy RL setting. When consecutive policies stay close, the
-            per-token ratio \(\rho(\tau,i)\) stays near 1, and its product, the
-            sequence-level ratio \(w(\tau)=\prod_i\rho(\tau,i)\), is
-            well-behaved. In async RL, the stale rollout policy means that in
+            per-token ratio \(\rho(\tau, i)\) stays near 1, and their product
+            the sequence-level ratio \(w(\tau) = \prod_i \rho(\tau, i)\) is
+            well-behaved. In async RL, the stale rollout policy means in
             long-horizon tasks, the mismatch can become extreme for previous
-            states. This state-occupancy mismatch is exactly what token-level
-            IS misses and what sequence-level IS corrects at the trajectory
-            level.
+            states. This state-occupancy mismatch is exactly what Token-level
+            IS misses compared to Sequence-level IS corrects which correct the
+            trajectory level instead.
           </p>
           <p>
-            Of course, sequence IS's unbiasedness comes with extra variance. At
+            Of course, Sequence IS’s unbiasedness comes with extra variance. At
             small batch sizes, the sequence-level ratio is noisy, which is why
-            token IS can look competitive at low compute.
+            token IS looks competitive at low compute.
           </p>
           <h3 id="simple-horizon-simulation">Simple Horizon Simulation</h3>
           <p>
-            To isolate how a long-horizon, sparse-reward setting scales with
-            asynchronous RL, we consider a simple MDP: a policy chooses a
-            sequence of bits over horizon \(H\), succeeding if fraction \(f\) of
-            bits are 1. The behavior policy is constrained to lag \(K\) behind
-            the training policy, faithfully representing the async RL setup.
+            To isolate how a long horizon, sparse reward setting <em>scales</em>
+            with asynchronous RL, we consider a simple MDP: a policy chooses a
+            sequence of bits over horizon \(H\), succeeding if fraction \(f\)
+            of bits are 1. The behavior policy is constrained to lag \(K\)
+            behind the training policy, faithfully representing the async RL
+            setup.
           </p>
 
           <figure class="article-figure wide">
@@ -691,21 +816,21 @@
           </figure>
 
           <p>
-            As horizon \(H\) grows, token IS and geometric-mean IS both fall
-            sharply while sequence IS degrades more robustly. Interestingly,
-            geometric-mean IS tracks closer to token IS than to sequence IS at
-            long horizons, ruling it out as a reliable middle ground. This is
-            what the theory predicts: the bias of token IS hurts it when policy
-            lag and horizon grow.
+            As horizon \(H\) grows, Token IS and GeoMean IS both fall sharply
+            while sequence IS degrades more robustly. Interestingly, GeoMean IS
+            tracks closer to token IS than to sequence IS at long horizons,
+            ruling it out as a reliable middle ground. This is what the theory
+            predicts: the bias of token IS scales should hurt it when policy
+            lag and horizon grows.
           </p>
           <p>
-            The right panel demonstrates the necessity of truncation at low
-            batch sizes. At small \(B\), regular sequence IS performs worst
-            because high variance dominates. Truncated sequence TIS performs
-            more robustly at these low batches, clipping the most extreme ratios
-            to trade a small amount of bias for much lower variance. But by
-            \(B\geq128\), regular sequence IS begins outperforming all truncated
-            variants.
+            The right panel demonstrates the necessity of truncation at low the
+            batch sizes. At small \(B\), regular sequence IS performs worst,
+            with it’s high variance dominating. Truncated Sequence TIS)
+            performs more robustly at these low batches, clipping the most
+            extreme ratios to trade a small amount of bias for much lower
+            variance. But by \(B \geq 128\), regular Sequence IS begins
+            outperforming all truncated variants.
           </p>
 
           <figure class="article-figure wide">
@@ -718,56 +843,53 @@
           </figure>
 
           <p>
-            Below a critical batch size, variance dominates and high-bias
+            Below a critical batch size, variance dominates and the high-bias
             methods are competitive. Past it, the bias in token IS becomes the
-            ceiling. At large batch sizes, sequence IS is extremely robust to
+            ceiling. At large batch sizes, Sequence IS is extremely robust to
             high policy lag, with performance matching fully synchronous
-            training. On the other hand, token IS and geometric-mean IS both
-            degrade monotonically with \(K\), regardless of \(B\).
+            training. On the other hand, Token IS and GeoMean IS both degrade
+            monotonically with policy lag \(K\), regardless of batch size \(B\).
           </p>
           <p>
             In other words, sequence IS scales well with compute, while token or
-            geometric-mean IS cannot be rescued.
+            GeoMean IS cannot be rescued.
           </p>
           <blockquote class="callout">
             <p>
-              As greater compute is poured into RL, token IS is not
-              approximately biased in the async RL regime; it is structurally
+              As greater compute is poured into RL, we see token IS is not
+              approximately biased in the async RL regime, it's structurally
               inconsistent as compute scales.
             </p>
           </blockquote>
         </section>
 
         <section>
-          <h2 id="open-questions">Open Questions at a Messy Frontier</h2>
+          <h2 id="open-questions">Open Questions at the Frontier</h2>
           <figure class="article-figure wide">
             <img src="../assets/blog/async-rl/figures/8.png" alt="Batch size stabilizes sequence TIS at high policy lag.">
-            <figcaption>
-              At higher batch sizes, sequence TIS becomes much more stable under
-              high policy lag and can recover or exceed the synchronous
-              baseline.
-            </figcaption>
           </figure>
           <p>
-            As suggested by our simulation results, as we scale batch size, the
-            advantage of sequence IS compounds. At \(B=32\), sequence TIS
-            collapses even before token TIS does. By \(B=64\), it matches the
-            synchronous \(K=0\) baseline, and at \(B=128\), it surpasses it.
-            Token TIS continues to collapse, however, as more compute is not
-            able to mitigate its estimator bias.
+            As suggested by our simulation results, as we scale both batch
+            size, the advantage of sequence IS compounds:
           </p>
           <p>
-            We think this reflects a more general pattern:
-            <strong>the low-bias compute scaling hypothesis</strong>.
+            At \(B=32\), sequence TIS collapses even before token TIS does. By
+            \(B=64,\) it matches the synchronous \(K=0\) baseline and at
+            \(B=128\) it surpasses it. Token TIS continues to collapse however,
+            as more compute wasn’t able to mitigate its estimator bias.
+          </p>
+          <p>
+            We think this reflects a more general pattern.
+            <strong>The low-bias compute scaling hypothesis:</strong>
           </p>
           <blockquote class="callout quote-callout">
             <p>
-              Low-bias methods are often less efficient at low compute because
-              they expose more variance, but they preserve the correct objective
-              and therefore have more room to improve as compute, batch size,
-              and variance control scale. High-bias methods are often more
-              efficient at small scale, but their bias can become the bottleneck
-              at high compute.
+              <em>Low-bias methods are often less efficient at low-compute
+              because they expose more variance, but they preserve the correct
+              objective and therefore have more room to improve as compute,
+              batch size, and variance control scale. High-bias methods are
+              often more efficient at small scale, but their bias can become
+              the bottleneck at high compute</em>
             </p>
           </blockquote>
           <p>
@@ -783,31 +905,31 @@
             and what do we do about it?</strong>
           </p>
           <p>
-            This is only one read of the Async RL landscape, and there are a lot
-            of open questions:
+            This is only one read of the Async RL landscape, and there's a lot
+            of questions to think about
           </p>
           <ul>
             <li>
               How do we stabilize sequence IS at low and moderate batch sizes
-              without reintroducing bias? The TIS variants help, but they are
-              still patching a variance problem rather than solving it.
+              without reintroducing bias? The TIS variants help, but they're
+              still patching a variance problem rather than solving it
             </li>
             <li>
-              Is scaling batch size the right lever for variance control, or
-              are there cheaper ways to reduce gradient noise that do not
-              require more compute?
+              Is scaling batch size the right lever for variance control, or are
+              there cheaper ways to reduce gradient noise that don't require
+              more compute?
             </li>
             <li>
-              Are there architectural changes that mitigate train-inference bias
-              and allow policy lag to be pushed higher? For example, MoE models
-              suffer particularly because of expert routing.
+              Are there architectural changes to mitigate train-inference bias
+              and allow policy-lag to be pushed higher? E.g. MoE’s suffer
+              particularly due expert routing
             </li>
           </ul>
           <p>
-            We suspect the instability has a more specific cause than just
-            “high variance”: something observable in the gradient statistics
-            before the crash happens. For more, see Part 2, which discusses the
-            underlying cause and one potential solution.
+            We suspect the instability has a more specific cause than just "high
+            variance". If so, can we observe something in the gradient
+            statistics before the crash happens? Stay tuned for Part 2, which
+            discusses a underlying statistical cause and one potential solution!
           </p>
         </section>
 
