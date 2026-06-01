@@ -149,17 +149,18 @@
           </div>
           <p>
             SFT and offline distillation teach the model what good behavior
-            looks like - fast and stable, but limited to trajectories the model
+            looks like &mdash; fast and stable, but limited to trajectories the model
             didn't generate itself. On-Policy Distillation goes further by
             having the model generate its own trajectories, though its ceiling
-            is still set by teacher capability and model family.
-            Self-distillation (
-            <a href="https://arxiv.org/abs/2601.18734">OPSD</a> and
+            is still set by teacher capability. Self-distillation (
+            <a href="https://arxiv.org/abs/2601.18734">OPSD</a> /
             <a href="https://arxiv.org/abs/2601.20802">SDPO</a>) removes the
             external teacher entirely, letting the model supervise itself under
             richer context: either from a hint, a verified answer, or
-            environment feedback. But in all cases, the ceiling is determined
-            by the data.
+            environment feedback. Applied Compute's RMSD extends this into
+            production with a filtered loss mask for out-of-distribution tasks.
+            improving data efficiency and training stability. But in all cases,
+            the ceiling is determined by the data.
           </p>
           <p>
             RL's role remains fundamental: the model searches through its own
